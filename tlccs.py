@@ -355,8 +355,7 @@ def get_device_status(dev: usb.core.Device) -> int:
 
 def get_scan_data(
         dev: usb.core.Device, 
-        data: TLCCS_DATA, 
-        factory_or_user: int = TLCCS_CAL_DATA_SET_FACTORY
+        data: TLCCS_DATA
     ) -> array.array:
     
     raw_scan_bytes = dev.read(0x86, TLCCS_NUM_RAW_PIXELS*UINT16_SZ)
@@ -376,17 +375,47 @@ def get_scan_data(
     norm_com = 1.0 / (MAX_ADC_VALUE - dark_com)
     for i in range(TLCCS_NUM_PIXELS):
         processed_scan_data[i] = ((raw_scan_data[SCAN_PIXELS_OFFSET + i]) - dark_com) * norm_com
-        if (processed_scan_data[i] < 1.0):
-            if factory_or_user == TLCCS_CAL_DATA_SET_FACTORY:
-                processed_scan_data[i] *= data.factory_amplitude_cal.amplitude_cor[i]
-            elif factory_or_user == TLCCS_CAL_DATA_SET_USER:
-                # 30dB amplification = x1000
-                processed_scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * 1000
-            else:
-                raise ValueError
-
+    
     return processed_scan_data
 
+def get_scan_data_factory(
+    dev: usb.core.Device, 
+    data: TLCCS_DATA
+    ) -> array.array:
+    
+    scan_data = get_scan_data(dev, data)
+    for i in range(TLCCS_NUM_PIXELS):
+        if (scan_data[i] < 1.0):
+            scan_data[i] *= data.factory_amplitude_cal.amplitude_cor[i]
+    return scan_data
+
+def get_scan_data_corrected_range(
+        dev: usb.core.Device, 
+        data: TLCCS_DATA, 
+        min_wl: float,
+        max_wl: float
+    ) -> array.array:
+    #TODO find noise amplification level on given range
+    noise_amplification_dB = 30
+    scan_data = get_scan_data(dev, data)
+    for i in range(TLCCS_NUM_PIXELS):
+        if (scan_data[i] < 1.0):
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * 10**(noise_amplification_dB/10)
+    return scan_data
+
+def get_scan_data_corrected_noise(
+    dev: usb.core.Device, 
+    data: TLCCS_DATA, 
+    center_wl: float,
+    noise_amplification_dB: float
+    ) -> array.array:
+    # TODO find wavelength range around center for which given noise amplification is reached
+    scan_data = get_scan_data(dev, data)
+    for i in range(TLCCS_NUM_PIXELS):
+        if (scan_data[i] < 1.0):
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * 10**(noise_amplification_dB/10)
+    return scan_data
+    
 def set_integration_time(dev: usb.core.Device, time: float):
     
     time_data = encode_integration_time(time)
@@ -806,11 +835,45 @@ class TLCCS:
     def set_integration_time(self, integration_time: float):
         set_integration_time(self.dev, integration_time)
 
-    def get_scan_data(self, factory_or_user: int = TLCCS_CAL_DATA_SET_FACTORY) -> array.array:
+    def get_scan_data_factory(self) -> array.array:
         status = 0x0000
         while (status & TLCCS_STATUS_SCAN_TRANSFER) == 0:
             status = get_device_status(self.dev) 
-        return get_scan_data(self.dev, self.data, factory_or_user)
+        return get_scan_data_factory(self.dev, self.data)
+
+    def get_scan_data_corrected_range(
+            self, 
+            min_wl: float = 321.45, 
+            max_wl: float = 742.11
+        ) -> array.array:
+        
+        status = 0x0000
+        while (status & TLCCS_STATUS_SCAN_TRANSFER) == 0:
+            status = get_device_status(self.dev) 
+
+        return get_scan_data_corrected_range(
+            self.dev, 
+            self.data, 
+            min_wl = min_wl,
+            max_wl = max_wl
+        )
+
+    def get_scan_data_corrected_noise(
+            self, 
+            center_wl: float = 531.78, 
+            noise_amplification_dB: float = 1.0
+        ) -> array.array:
+        
+        status = 0x0000
+        while (status & TLCCS_STATUS_SCAN_TRANSFER) == 0:
+            status = get_device_status(self.dev) 
+
+        return get_scan_data_corrected_noise(
+            self.dev, 
+            self.data, 
+            center_wl = center_wl,
+            noise_amplification_dB = noise_amplification_dB
+        )
     
     def reset(self):
         reset_device(self.dev)
@@ -842,8 +905,8 @@ if __name__ == '__main__':
     try:
         while True:
 
-            #spectrum = ccs100.get_scan_data(TLCCS_CAL_DATA_SET_USER)
-            spectrum = ccs100.get_scan_data(TLCCS_CAL_DATA_SET_FACTORY)
+            #spectrum = ccs100.get_scan_data_corrected_range()
+            spectrum = ccs100.get_scan_data_factory()
             line.set_ydata(spectrum)
             ax.set_ylim(-0.01, 1.1*max(spectrum))
             fig.canvas.draw()
