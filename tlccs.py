@@ -159,7 +159,7 @@ class TLCCS_USER_CAL_PTS:
 
 @dataclass
 class TLCCS_ACOR:
-    acor: array.array = field(default_factory=lambda: array.array('f', [1.0]*TLCCS_NUM_PIXELS))
+    amplitude_cor: array.array = field(default_factory=lambda: array.array('f', [1.0]*TLCCS_NUM_PIXELS))
     checksum: int = 0
 
 @dataclass
@@ -183,12 +183,12 @@ class TLCCS_DATA:
     odd_offset_max: int = 1
 
     # device calibration
-    factory_cal: TLCCS_WL_CAL = field(default_factory=TLCCS_WL_CAL) 
-    user_cal: TLCCS_WL_CAL = field(default_factory=TLCCS_WL_CAL) 
+    factory_wavelength_cal: TLCCS_WL_CAL = field(default_factory=TLCCS_WL_CAL) 
+    user_wavelength_cal: TLCCS_WL_CAL = field(default_factory=TLCCS_WL_CAL) 
     user_points: TLCCS_USER_CAL_PTS = field(default_factory=TLCCS_USER_CAL_PTS) 
     
-    factory_acor_cal: TLCCS_ACOR = field(default_factory=TLCCS_ACOR)
-    user_acor_cal: TLCCS_ACOR = field(default_factory=TLCCS_ACOR)
+    factory_amplitude_cal: TLCCS_ACOR = field(default_factory=TLCCS_ACOR)
+    user_amplitude_cal: TLCCS_ACOR = field(default_factory=TLCCS_ACOR)
     cal_mode: int = 0
 
     # version
@@ -373,7 +373,7 @@ def get_scan_data(dev: usb.core.Device, data: TLCCS_DATA) -> array.array:
     for i in range(TLCCS_NUM_PIXELS):
         processed_scan_data[i] = ((raw_scan_data[SCAN_PIXELS_OFFSET + i]) - dark_com) * norm_com
         if (processed_scan_data[i] < 1.0):
-            processed_scan_data[i] *= data.factory_acor_cal.acor[i]
+            processed_scan_data[i] *= data.factory_amplitude_cal.amplitude_cor[i]
 
     return processed_scan_data
 
@@ -403,28 +403,28 @@ def get_integration_time(dev: usb.core.Device) -> float:
 def get_wavelength(data: TLCCS_DATA, factory_or_user: int = TLCCS_CAL_DATA_SET_FACTORY) -> array.array:
     
     if factory_or_user == TLCCS_CAL_DATA_SET_FACTORY:
-        return data.factory_cal.wl
+        return data.factory_wavelength_cal.wl
     
     elif factory_or_user == TLCCS_CAL_DATA_SET_USER:
-        if not data.user_cal.valid:
+        if not data.user_wavelength_cal.valid:
             raise InvalidUserData
-        return data.user_cal.wl
+        return data.user_wavelength_cal.wl
     
     else:
         raise ValueError
 
 def get_wavelength_parameters(dev: usb.core.Device, data: TLCCS_DATA)  -> None:
 
-    data.factory_cal.valid = 0
-    read_factory_poly(dev, data.factory_cal.poly)
-    poly_to_wavelength_array(data.factory_cal)
+    data.factory_wavelength_cal.valid = 0
+    read_factory_poly(dev, data.factory_wavelength_cal.poly)
+    poly_to_wavelength_array(data.factory_wavelength_cal)
 
-    data.user_cal.valid = 0
+    data.user_wavelength_cal.valid = 0
     try:
         read_user_points(dev, data.user_points)
-        nodes_to_poly(data.user_points, data.user_cal)
-        poly_to_wavelength_array(data.user_cal)
-        data.user_cal.valid = 1
+        nodes_to_poly(data.user_points, data.user_wavelength_cal)
+        poly_to_wavelength_array(data.user_wavelength_cal)
+        data.user_wavelength_cal.valid = 1
 
     except NoUserDataPoint:
         pass
@@ -473,32 +473,32 @@ def get_hardware_revision(dev: usb.core.Device, hardware_version: TLCCS_VERSION)
 
 def get_amplitude_correction_array(
         dev: usb.core.Device, 
-        acor_cal: TLCCS_ACOR,
+        amplitude_cor_cal: TLCCS_ACOR,
         address: int
     ) -> None:
 
-    acor_bytes = read_EEPROM(
+    amplitude_cor_bytes = read_EEPROM(
         dev, 
         address = address, 
         idx = 0, 
         length = EE_LENGTH_ACOR
     )
-    acor_data = struct.unpack('<' + 'f'*TLCCS_NUM_PIXELS , acor_bytes)
-    for i, a in enumerate(acor_data):
-        acor_cal.acor[i] = a
+    amplitude_cor_data = struct.unpack('<' + 'f'*TLCCS_NUM_PIXELS , amplitude_cor_bytes)
+    for i, a in enumerate(amplitude_cor_data):
+        amplitude_cor_cal.amplitude_cor[i] = a
 
     for i in range(TLCCS_NUM_PIXELS):
-        if acor_cal.acor[i] < TLCCS_AMP_CORR_FACT_MIN:
-            acor_cal.acor[i] = TLCCS_AMP_CORR_FACT_MIN
+        if amplitude_cor_cal.amplitude_cor[i] < TLCCS_AMP_CORR_FACT_MIN:
+            amplitude_cor_cal.amplitude_cor[i] = TLCCS_AMP_CORR_FACT_MIN
 
-        if acor_cal.acor[i] > TLCCS_AMP_CORR_FACT_MAX:
-            acor_cal.acor[i] = TLCCS_AMP_CORR_FACT_MAX
+        if amplitude_cor_cal.amplitude_cor[i] > TLCCS_AMP_CORR_FACT_MAX:
+            amplitude_cor_cal.amplitude_cor[i] = TLCCS_AMP_CORR_FACT_MAX
 
 
 def get_amplitude_correction(dev: usb.core.Device, data: TLCCS_DATA) -> None:
 
-    get_amplitude_correction_array(dev, data.factory_acor_cal, EE_ACOR_FACTORY)
-    get_amplitude_correction_array(dev, data.user_acor_cal, EE_ACOR_USER)
+    get_amplitude_correction_array(dev, data.factory_amplitude_cal, EE_ACOR_FACTORY)
+    get_amplitude_correction_array(dev, data.user_amplitude_cal, EE_ACOR_USER)
 
 
 def read_factory_poly(dev: usb.core.Device, poly: array.array) -> None:
@@ -547,7 +547,7 @@ def read_user_points(dev: usb.core.Device, user_points: TLCCS_USER_CAL_PTS) -> N
         user_points.user_cal_node_wl[i] = wl
 
 
-def nodes_to_poly(user_points: TLCCS_USER_CAL_PTS, user_cal: TLCCS_WL_CAL):
+def nodes_to_poly(user_points: TLCCS_USER_CAL_PTS, user_wavelength_cal: TLCCS_WL_CAL):
     # TODO understand what happens, there is probably a simpler way
     ...
 
