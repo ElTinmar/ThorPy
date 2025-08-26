@@ -22,7 +22,15 @@ or
 pip install pyusb libusb-package
 ```
 
-### Add udev rules
+### Windows
+
+Install Thorlabs' ThorSpectra software: https://www.thorlabs.com/software_pages/viewsoftwarepage.cfm?code=CCS
+
+This will take care of uploading the firmware automatically when the device is plugged in.
+
+### Linux
+
+#### Add udev rules
 
 Make sure user is part of the plugdev group:
 
@@ -54,7 +62,7 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-### Firmware file
+#### Firmware file
 
 You need a firmware file (e.g. CCS100.spt) provided by Thorlabs to operate the device. 
 They can be obtained from Thorlabs by installing the ThorSpectra software on a windows machine.
