@@ -408,7 +408,7 @@ def get_scan_data_corrected_range(
         if i < idx_min or i > idx_max:
             scan_data[i] = 0
         else:
-            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_amplification_mult
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_amplification_mult # this is fishy
     return scan_data
 
 def get_scan_data_corrected_noise(
