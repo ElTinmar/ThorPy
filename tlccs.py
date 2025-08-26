@@ -3,6 +3,7 @@ import array
 import usb.core
 import struct
 import time
+import math
 
 import sys
 if sys.platform == 'win32':
@@ -385,8 +386,7 @@ def get_scan_data_factory(
     
     scan_data = get_scan_data(dev, data)
     for i in range(TLCCS_NUM_PIXELS):
-        if (scan_data[i] < 1.0):
-            scan_data[i] *= data.factory_amplitude_cal.amplitude_cor[i]
+        scan_data[i] *= data.factory_amplitude_cal.amplitude_cor[i]
     return scan_data
 
 def get_scan_data_corrected_range(
@@ -395,12 +395,20 @@ def get_scan_data_corrected_range(
         min_wl: float,
         max_wl: float
     ) -> array.array:
-    #TODO find noise amplification level on given range
-    noise_amplification_dB = 30
+    # This still seems slightly off somehow
+
+    idx_min = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > min_wl))
+    idx_max = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > max_wl))
+    amplitude_cor = data.user_amplitude_cal.amplitude_cor[idx_min:idx_max]
+    #noise_amplification_dB = 10*math.log10(max(amplitude_cor)/min(amplitude_cor))
+    noise_amplification_mult = max(amplitude_cor)/min(amplitude_cor)
+    
     scan_data = get_scan_data(dev, data)
     for i in range(TLCCS_NUM_PIXELS):
-        if (scan_data[i] < 1.0):
-            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * 10**(noise_amplification_dB/10)
+        if i < idx_min or i > idx_max:
+            scan_data[i] = 0
+        else:
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_amplification_mult
     return scan_data
 
 def get_scan_data_corrected_noise(
@@ -412,8 +420,7 @@ def get_scan_data_corrected_noise(
     # TODO find wavelength range around center for which given noise amplification is reached
     scan_data = get_scan_data(dev, data)
     for i in range(TLCCS_NUM_PIXELS):
-        if (scan_data[i] < 1.0):
-            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * 10**(noise_amplification_dB/10)
+        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * 10**(noise_amplification_dB/10)
     return scan_data
     
 def set_integration_time(dev: usb.core.Device, time: float):
@@ -889,7 +896,7 @@ if __name__ == '__main__':
         PID_spectro = 0x8081
     )
 
-    ccs100.set_integration_time(0.5)
+    ccs100.set_integration_time(1)
 
     fig, ax = plt.subplots()
     line, = ax.plot(ccs100.get_wavelength(), array.array('f', [0]*TLCCS_NUM_PIXELS))
@@ -905,8 +912,9 @@ if __name__ == '__main__':
     try:
         while True:
 
-            #spectrum = ccs100.get_scan_data_corrected_range()
-            spectrum = ccs100.get_scan_data_factory()
+            spectrum = ccs100.get_scan_data_corrected_range(min_wl=450, max_wl=550)
+            print(max(spectrum))
+            #spectrum = ccs100.get_scan_data_factory()
             line.set_ydata(spectrum)
             ax.set_ylim(-0.01, 1.1*max(spectrum))
             fig.canvas.draw()
