@@ -56,12 +56,33 @@ sudo udevadm trigger
 
 ### Firmware file
 
-You need a firmware file (e.g. CCS100.spt) provided by Thorlabs to operate the device. The firmwares are proprietary so they are not included in the repo. They can be obtained from Thorlabs by installing the ThorSpectra software on a windows machine (or with wine):
+You need a firmware file (e.g. CCS100.spt) provided by Thorlabs to operate the device. 
+They can be obtained from Thorlabs by installing the ThorSpectra software on a windows machine.
 https://www.thorlabs.com/software_pages/viewsoftwarepage.cfm?code=CCS
 
-The file is usually located here:
+The files are usually located here:
 ```bash
-C:/Program Files/Thorlabs/CCS/inf/Loader/CCS100.spt
+C:/Program Files/Thorlabs/CCS/inf/Loader/CCS*.spt
+```
+
+Alternatively, they can be extracted from an older version of Thorlabs OSA software
+with innoextract:
+
+```bash
+sudo apt install innoextract
+curl -O https://www.thorlabs.com/software/THO/OSA/V2_90/ThorlabsOSASW_Full_setup.exe
+mkdir ccs_firmware
+mkdir temp_extract
+innoextract --extract --output-dir=temp_extract \
+--include "app/CCS/inf/Loader/CCS100.spt" \
+--include "app/CCS/inf/Loader/CCS125.spt" \
+--include "app/CCS/inf/Loader/CCS150.spt" \
+--include "app/CCS/inf/Loader/CCS175.spt" \
+--include "app/CCS/inf/Loader/CCS200.spt" \
+ThorlabsOSASW_Full_setup.exe
+mv temp_extract/app/CCS/inf/Loader/CCS*.spt ccs_firmware/
+rm -rf temp_extract
+rm ThorlabsOSASW_Full_setup.exe
 ```
 
 ## Usage
