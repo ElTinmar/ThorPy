@@ -1,0 +1,11 @@
+name: ccs100
+channels:
+- conda-forge
+dependencies:
+- python == 3.10
+- ipython
+- pip
+- matplotlib
+- pip:
+  - pyusb
+
