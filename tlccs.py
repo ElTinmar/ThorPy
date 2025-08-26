@@ -4,6 +4,13 @@ import usb.core
 import struct
 import time
 
+import sys
+if sys.platform == 'win32':
+    import libusb_package
+    libusb_backend = libusb_package.get_libusb1_backend()
+else:
+    libusb_backend = None
+
 class EEPROMChecksumError(Exception): ...
 class InvalidUserData(Exception): ...
 class Overexposure(Exception): ...
@@ -717,7 +724,7 @@ def dump_ram(dev: usb.core.Device) -> tuple[array.array, array.array]:
 
 def renumerate(PID: int = 0x8080, firmware_file: str = 'CCS100.spt'):
 
-    dev = usb.core.find(idVendor=THORLABS_VID, idProduct=PID)
+    dev = usb.core.find(idVendor=THORLABS_VID, idProduct=PID, backend=libusb_backend)
     if dev is None:
         return
     
@@ -748,7 +755,7 @@ class TLCCS:
 
         renumerate(PID_loader, firmware_file)
 
-        self.dev = usb.core.find(idVendor=THORLABS_VID, idProduct=PID_spectro)
+        self.dev = usb.core.find(idVendor=THORLABS_VID, idProduct=PID_spectro, backend=libusb_backend)
         if self.dev is None:
             raise DeviceNotFound
         

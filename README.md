@@ -16,10 +16,10 @@ TLCCS library provided by thorlabs, using pyUSB.
 conda env create -f ccs100.yml
 ```
 
-On windows:
+or 
 
-```bash
-pip install libusb-package
+```
+pip install pyusb libusb-package
 ```
 
 ### Add udev rules
@@ -86,6 +86,10 @@ rm ThorlabsOSASW_Full_setup.exe
 ```
 
 ## Usage
+
+```
+conda activate ccs100
+```
 
 Get single scan:
 
