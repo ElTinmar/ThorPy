@@ -15,6 +15,7 @@ class EEPROMChecksumError(Exception): ...
 class InvalidUserData(Exception): ...
 class Overexposure(Exception): ...
 class DeviceNotFound(Exception): ...
+class NoUserDataPoint(Exception): ...
 
 THORLABS_VID = 0x1313
 TLCCS_SERIAL_NO_LENGTH = 24
@@ -405,10 +406,13 @@ def get_wavelength_parameters(dev: usb.core.Device, data: TLCCS_DATA)  -> None:
     poly_to_wavelength_array(data.factory_cal)
 
     data.user_cal.valid = 0
-    #read_user_points(dev, data.user_points)
-    #nodes_to_poly(data.user_points, data.user_cal)
-    #poly_to_wavelength_array(data.user_cal)
-
+    try:
+        read_user_points(dev, data.user_points)
+        nodes_to_poly(data.user_points, data.user_cal)
+        poly_to_wavelength_array(data.user_cal)
+        
+    except NoUserDataPoint:
+        pass
 
 def get_dark_current_offset(dev: usb.core.Device, data: TLCCS_DATA)  -> None:
 
@@ -505,8 +509,7 @@ def read_user_points(dev: usb.core.Device, user_points: TLCCS_USER_CAL_PTS) -> N
     cnt = struct.unpack('<H', point_count)[0]
 
     if cnt == 0xFFFF:
-        #print('No user data points, skipping')
-        return 
+        raise NoUserDataPoint
 
     point_data = read_EEPROM(
         dev, 
