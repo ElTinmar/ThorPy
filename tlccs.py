@@ -723,12 +723,12 @@ def dump_ram(dev: usb.core.Device) -> tuple[array.array, array.array]:
     return program, data
 
 def renumerate(PID: int = 0x8080, firmware_file: str = 'CCS100.spt'):
-
-    print('Uploading firmware...')
+    
     dev = usb.core.find(idVendor=THORLABS_VID, idProduct=PID, backend=libusb_backend)
     if dev is None:
         return
     
+    print('Uploading firmware...')
     dev.set_configuration()
     firmware = parse_spt(firmware_file)
     upload_firmware(dev, firmware)
