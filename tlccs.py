@@ -733,7 +733,7 @@ def renumerate(PID: int = 0x8080, firmware_file: str = 'CCS100.spt'):
     firmware = parse_spt(firmware_file)
     upload_firmware(dev, firmware)
     
-    time.sleep(2)
+    time.sleep(5)
 
 def reset_device(dev: usb.core.Device):
 
@@ -795,7 +795,7 @@ if __name__ == '__main__':
         PID_spectro = 0x8081
     )
 
-    ccs100.set_integration_time(0.1)
+    ccs100.set_integration_time(0.5)
 
     fig, ax = plt.subplots()
     line, = ax.plot(ccs100.data.factory_cal.wl, array.array('f', [0]*TLCCS_NUM_PIXELS))
