@@ -784,8 +784,8 @@ class TLCCS:
         self.data = TLCCS_DATA()
         initialize(self.dev, self.data)
 
-    def get_wavelenth(self, factory_or_user: int = TLCCS_CAL_DATA_SET_FACTORY):
-        get_wavelength(self.data, factory_or_user)
+    def get_wavelength(self, factory_or_user: int = TLCCS_CAL_DATA_SET_FACTORY) -> array.array:
+        return get_wavelength(self.data, factory_or_user)
 
     def start_single_scan(self):
         start_single_scan(self.dev)
@@ -819,7 +819,7 @@ if __name__ == '__main__':
     ccs100.set_integration_time(0.5)
 
     fig, ax = plt.subplots()
-    line, = ax.plot(ccs100.get_wavelenth(), array.array('f', [0]*TLCCS_NUM_PIXELS))
+    line, = ax.plot(ccs100.get_wavelength(), array.array('f', [0]*TLCCS_NUM_PIXELS))
     ax.set_xlabel("Wavelength (nm)")
     ax.set_ylabel("Normalized Intensity")
     ax.set_ylim(-0.01, 1.1)
