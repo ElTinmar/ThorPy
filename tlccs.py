@@ -30,6 +30,8 @@ TLCCS_AMP_CORR_FACT_MAX = 1000.0
 ENDPOINT_0_TRANSFERSIZE = 64
 TLCCS_TIMEOUT_DEF = 2000
 TLCCS_CAL_MODE_USER = 0
+TLCCS_CAL_DATA_SET_FACTORY = 0
+TLCCS_CAL_DATA_SET_USER = 1
 TLCCS_MIN_INT_TIME = 1e-5
 TLCCS_MAX_INT_TIME = 60
 TLCCS_DEF_INT_TIME = 0.01
@@ -398,6 +400,18 @@ def get_integration_time(dev: usb.core.Device) -> float:
     )
     return decode_integration_time(time_bytes)
 
+def get_wavelength(data: TLCCS_DATA, factory_or_user: int = TLCCS_CAL_DATA_SET_FACTORY) -> array.array:
+    
+    if factory_or_user == TLCCS_CAL_DATA_SET_FACTORY:
+        return data.factory_cal.wl
+    
+    elif factory_or_user == TLCCS_CAL_DATA_SET_USER:
+        if not data.user_cal.valid:
+            raise InvalidUserData
+        return data.user_cal.wl
+    
+    else:
+        raise ValueError
 
 def get_wavelength_parameters(dev: usb.core.Device, data: TLCCS_DATA)  -> None:
 
@@ -410,7 +424,8 @@ def get_wavelength_parameters(dev: usb.core.Device, data: TLCCS_DATA)  -> None:
         read_user_points(dev, data.user_points)
         nodes_to_poly(data.user_points, data.user_cal)
         poly_to_wavelength_array(data.user_cal)
-        
+        data.user_cal.valid = 1
+
     except NoUserDataPoint:
         pass
 
@@ -769,6 +784,9 @@ class TLCCS:
         self.data = TLCCS_DATA()
         initialize(self.dev, self.data)
 
+    def get_wavelenth(self, factory_or_user: int = TLCCS_CAL_DATA_SET_FACTORY):
+        get_wavelength(self.data, factory_or_user)
+
     def start_single_scan(self):
         start_single_scan(self.dev)
 
@@ -801,7 +819,7 @@ if __name__ == '__main__':
     ccs100.set_integration_time(0.5)
 
     fig, ax = plt.subplots()
-    line, = ax.plot(ccs100.data.factory_cal.wl, array.array('f', [0]*TLCCS_NUM_PIXELS))
+    line, = ax.plot(ccs100.get_wavelenth(), array.array('f', [0]*TLCCS_NUM_PIXELS))
     ax.set_xlabel("Wavelength (nm)")
     ax.set_ylabel("Normalized Intensity")
     ax.set_ylim(-0.01, 1.1)
