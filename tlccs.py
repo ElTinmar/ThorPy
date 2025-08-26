@@ -790,7 +790,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     ccs100 = TLCCS(
-        firmware_file = 'CCS100.spt',
+        firmware_file = 'ccs_firmware/CCS100.spt',
         PID_loader = 0x8080,
         PID_spectro = 0x8081
     )
