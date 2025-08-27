@@ -4,7 +4,7 @@ import usb.core
 import struct
 import time
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 import sys
 if sys.platform == 'win32':
@@ -413,7 +413,7 @@ def get_scan_data_corrected_range(
     return scan_data
 
 
-def find_centered_range(arr: array.array, center: int, threshold: float) -> tuple[int, int, float, float]:
+def find_centered_range(arr: array.array, center: int, threshold: float) -> Tuple[int, int, float, float]:
 
     n = len(arr)
     left = right = center
@@ -826,7 +826,7 @@ def release_cpu(dev: usb.core.Device) -> None:
         data_or_wLength=[0x00]    
     )
 
-def dump_ram(dev: usb.core.Device) -> tuple[array.array, array.array]:
+def dump_ram(dev: usb.core.Device) -> Tuple[array.array, array.array]:
 
     hold_cpu(dev)
 
