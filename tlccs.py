@@ -849,14 +849,19 @@ def dump_ram(dev: usb.core.Device) -> tuple[array.array, array.array]:
 
 def renumerate(PID: int = 0x8080, firmware_file: str = 'CCS100.spt'):
     
-    dev = usb.core.find(idVendor=THORLABS_VID, idProduct=PID, backend=libusb_backend)
-    if dev is None:
-        return
+    devices = usb.core.find(
+        idVendor = THORLABS_VID, 
+        idProduct = PID, 
+        backend = libusb_backend, 
+        find_all = True
+    )
     
-    print('Uploading firmware...')
-    dev.set_configuration()
     firmware = parse_spt(firmware_file)
-    upload_firmware(dev, firmware)
+    
+    for dev in devices:
+        print('Uploading firmware...')
+        dev.set_configuration()
+        upload_firmware(dev, firmware)
     
     time.sleep(5) # wait for re-enumeration
 
@@ -876,15 +881,27 @@ class TLCCS:
             self, 
             firmware_file: str = 'CCS100.spt', 
             PID_loader: int = 0x8080, 
-            PID_spectro: int = 0x8081
+            PID_spectro: int = 0x8081,
+            serial_number: str = 'M00300454'
         ):
 
         renumerate(PID_loader, firmware_file)
 
-        self.dev = usb.core.find(idVendor=THORLABS_VID, idProduct=PID_spectro, backend=libusb_backend)
+        devices = usb.core.find(
+            idVendor = THORLABS_VID, 
+            idProduct = PID_spectro, 
+            backend = libusb_backend,
+            find_all = True
+        )
+        
+        self.dev = None
+        for dev in devices:
+            if dev.serial_number == serial_number:
+                self.dev = dev
+                
         if self.dev is None:
             raise DeviceNotFound
-        
+
         self.dev.set_configuration()
         self.dev.reset()  
 
