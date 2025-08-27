@@ -22,6 +22,12 @@ or
 pip install pyusb libusb-package matplotlib
 ```
 
+or 
+
+```
+pip install git+https://github.com/ElTinmar/CCS100.git@main
+```
+
 ### Windows
 
 Install Thorlabs' ThorSpectra software: https://www.thorlabs.com/software_pages/viewsoftwarepage.cfm?code=CCS
