@@ -858,7 +858,7 @@ def renumerate(PID: int = 0x8080, firmware_file: str = 'CCS100.spt'):
     firmware = parse_spt(firmware_file)
     upload_firmware(dev, firmware)
     
-    time.sleep(5)
+    time.sleep(5) # wait for re-enumeration
 
 def reset_device(dev: usb.core.Device):
 
