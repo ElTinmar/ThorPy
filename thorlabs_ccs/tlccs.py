@@ -658,10 +658,10 @@ def read_user_points(dev: usb.core.Device, user_points: TLCCS_USER_CAL_PTS) -> N
 
 def nodes_to_poly(user_points: TLCCS_USER_CAL_PTS, user_wavelength_cal: TLCCS_WL_CAL):
     user_wavelength_cal.poly = np.polyfit(
-        user_points.user_cal_node_pixel, 
-        user_points.user_cal_node_wl, 
+        user_points.user_cal_node_pixel[:user_points.user_cal_node_cnt], 
+        user_points.user_cal_node_wl[:user_points.user_cal_node_cnt], 
         deg = 3
-    )
+    )[::-1]
 
 
 def poly_to_wavelength_array(cal: TLCCS_WL_CAL) -> None:
