@@ -395,11 +395,10 @@ def get_scan_data_corrected_range(
         min_wl: float,
         max_wl: float
     ) -> array.array:
-    # This still seems slightly off somehow
 
     idx_min: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > min_wl))
     idx_max: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > max_wl))
-    amplitude_cor: float = data.user_amplitude_cal.amplitude_cor[idx_min:idx_max]
+    amplitude_cor: array.array = data.user_amplitude_cal.amplitude_cor[idx_min:idx_max]
     noise_amplification_mult: float = max(amplitude_cor)/min(amplitude_cor)
     noise_amplification_dB: float = 10*math.log10(noise_amplification_mult)
     print(noise_amplification_dB)
