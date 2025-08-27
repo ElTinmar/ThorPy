@@ -83,8 +83,7 @@ Alternatively, they can be extracted from an older version of Thorlabs OSA softw
 with innoextract:
 
 ```bash
-chmod +x extract_ccs_firmware.sh
-./extract_ccs_firmware.sh
+python thorlabs_ccs/get_firmware.py
 ```
 
 ## Usage
