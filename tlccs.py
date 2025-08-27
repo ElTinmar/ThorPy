@@ -898,7 +898,7 @@ class TLCCS:
         for dev in devices:
             if dev.serial_number == serial_number:
                 self.dev = dev
-                
+
         if self.dev is None:
             raise DeviceNotFound
 
