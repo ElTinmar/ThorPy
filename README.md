@@ -13,7 +13,7 @@ TLCCS library provided by thorlabs, using pyUSB.
 ## Installation
 
 ```bash
-conda env create -f ccs100.yml
+conda env create -f thorlabs_ccs.yml
 ```
 
 or 
@@ -96,7 +96,7 @@ rm ThorlabsOSASW_Full_setup.exe
 ## Usage
 
 ```
-conda activate ccs100
+conda activate thorlabs_ccs
 ```
 
 Get single scan:
