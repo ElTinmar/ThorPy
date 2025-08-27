@@ -644,15 +644,15 @@ def read_user_points(dev: usb.core.Device, user_points: TLCCS_USER_CAL_PTS) -> N
 
     user_points.user_cal_node_cnt = cnt
 
-    n_px = cnt*UINT32_SZ
-    pixels = struct.unpack('<'+'L'*cnt, point_data[:n_px])
+    n_bytes_px = cnt*UINT32_SZ
+    pixels = struct.unpack('<'+'L'*cnt, point_data[:n_bytes_px])
     for i, px in enumerate(pixels):
         user_points.user_cal_node_pixel[i] = px
 
-    n_wl = cnt*REAL64_SZ
+    n_bytes_wl = cnt*REAL64_SZ
     wl_start = TLCCS_MAX_NUM_USR_ADJ*UINT32_SZ  
-    wavelengths = struct.unpack('<'+'d'*cnt, point_data[wl_start:wl_start+n_wl])
-    for i, wl in wavelengths:
+    wavelengths = struct.unpack('<'+'d'*cnt, point_data[wl_start:wl_start+n_bytes_wl])
+    for i, wl in enumerate(wavelengths):
         user_points.user_cal_node_wl[i] = wl
 
 
