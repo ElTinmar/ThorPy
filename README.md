@@ -19,7 +19,7 @@ conda env create -f thorlabs_ccs.yml
 or 
 
 ```
-pip install pyusb libusb-package
+pip install pyusb libusb-package matplotlib
 ```
 
 ### Windows
