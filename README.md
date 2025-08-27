@@ -102,26 +102,28 @@ conda activate ccs100
 Get single scan:
 
 ```python
-from tlccs import TLCCS
+from thorlabs_ccs import TLCCS
 
 ccs100 = TLCCS(
-    firmware_file = 'CCS100.spt',
+    firmware_file = 'ccs_firmware/CCS100.spt',
     PID_loader = 0x8080,
     PID_spectro = 0x8081
 )
 
 ccs100.set_integration_time(0.1)
 ccs100.start_single_scan()
-spectrum = ccs100.get_scan_data()
+spectrum = ccs100.get_scan_data_factory()
 ```
 
 Continuous acquisition:
 
 ```python
+from thorlabs_ccs import TLCCS
 import matplotlib.pyplot as plt
+import array
 
 ccs100 = TLCCS(
-    firmware_file = 'CCS100.spt',
+    firmware_file = 'ccs_firmware/CCS100.spt',
     PID_loader = 0x8080,
     PID_spectro = 0x8081
 )
@@ -129,7 +131,8 @@ ccs100 = TLCCS(
 ccs100.set_integration_time(0.1)
 
 fig, ax = plt.subplots()
-line, = ax.plot(ccs100.data.factory_cal.wl, array.array('f', [0]*TLCCS_NUM_PIXELS))
+wavelength = ccs100.get_wavelength()
+line, = ax.plot(wavelength, array.array('f', [0]*len(wavelength)))
 ax.set_xlabel("Wavelength (nm)")
 ax.set_ylabel("Normalized Intensity")
 ax.set_ylim(-0.01, 1.1)
@@ -141,7 +144,7 @@ ccs100.start_continuous_scan()
 try:
     while True:
         
-        spectrum = ccs100.get_scan_data()
+        spectrum = ccs100.get_scan_data_factory()
         line.set_ydata(spectrum)
         ax.set_ylim(-0.01, 1.1*max(spectrum))
         fig.canvas.draw()
