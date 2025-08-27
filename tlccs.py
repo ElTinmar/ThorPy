@@ -990,9 +990,9 @@ if __name__ == '__main__':
     try:
         while True:
 
-            spectrum = ccs100.get_scan_data_corrected_range(min_wl=450, max_wl=550)
+            #spectrum = ccs100.get_scan_data_corrected_range(min_wl=450, max_wl=550)
             #spectrum = ccs100.get_scan_data_corrected_noise(center_wl=531.78, noise_amplification_dB=3.0)
-            #spectrum = ccs100.get_scan_data_factory()
+            spectrum = ccs100.get_scan_data_factory()
             line.set_ydata(spectrum)
             ax.set_ylim(-0.01, 1.1*max(spectrum))
             fig.canvas.draw()
