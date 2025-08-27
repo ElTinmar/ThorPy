@@ -4,6 +4,7 @@ import usb.core
 import struct
 import time
 import math
+from typing import Optional
 
 import sys
 if sys.platform == 'win32':
@@ -882,22 +883,31 @@ class TLCCS:
             firmware_file: str = 'CCS100.spt', 
             PID_loader: int = 0x8080, 
             PID_spectro: int = 0x8081,
-            serial_number: str = 'M00300454'
+            serial_number: Optional[str] = None
         ):
 
         renumerate(PID_loader, firmware_file)
 
-        devices = usb.core.find(
-            idVendor = THORLABS_VID, 
-            idProduct = PID_spectro, 
-            backend = libusb_backend,
-            find_all = True
-        )
+        if serial_number is None:
+            # find the first device
+            self.dev = usb.core.find(
+                idVendor = THORLABS_VID, 
+                idProduct = PID_spectro, 
+                backend = libusb_backend
+            )
         
-        self.dev = None
-        for dev in devices:
-            if dev.serial_number == serial_number:
-                self.dev = dev
+        else:
+            devices = usb.core.find(
+                idVendor = THORLABS_VID, 
+                idProduct = PID_spectro, 
+                backend = libusb_backend,
+                find_all = True
+            )
+            
+            self.dev = None
+            for dev in devices:
+                if dev.serial_number == serial_number:
+                    self.dev = dev
 
         if self.dev is None:
             raise DeviceNotFound
@@ -971,7 +981,8 @@ if __name__ == '__main__':
     ccs100 = TLCCS(
         firmware_file = 'ccs_firmware/CCS100.spt',
         PID_loader = 0x8080,
-        PID_spectro = 0x8081
+        PID_spectro = 0x8081,
+        serial_number = 'M00300454'
     )
 
     ccs100.set_integration_time(1)
