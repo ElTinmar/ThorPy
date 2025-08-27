@@ -1,3 +1,8 @@
+# Most of the code is a pyUSB re-implementation of Thorlabs'
+# tlccs library, which is distributed under LGPL2.1.
+# The original C code can be found in the tlccs folder.
+
+
 from dataclasses import dataclass, field
 import array
 import usb.core
