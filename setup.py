@@ -9,6 +9,7 @@ setup(
     description='Control Thorlabs CCS spectrometer',
     long_description=open('README.md').read(),
     install_requires=[
+        "numpy",
         "pyUSB",
         "libusb-package",
         "matplotlib"

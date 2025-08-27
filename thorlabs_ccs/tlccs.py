@@ -5,6 +5,7 @@ import struct
 import time
 import math
 from typing import Optional, Tuple
+import numpy as np
 
 import sys
 if sys.platform == 'win32':
@@ -656,8 +657,11 @@ def read_user_points(dev: usb.core.Device, user_points: TLCCS_USER_CAL_PTS) -> N
 
 
 def nodes_to_poly(user_points: TLCCS_USER_CAL_PTS, user_wavelength_cal: TLCCS_WL_CAL):
-    # TODO understand what happens, there is probably a simpler way
-    ...
+    user_wavelength_cal.poly = np.polyfit(
+        user_points.user_cal_node_pixel, 
+        user_points.user_cal_node_wl, 
+        deg = 3
+    )
 
 
 def poly_to_wavelength_array(cal: TLCCS_WL_CAL) -> None:
