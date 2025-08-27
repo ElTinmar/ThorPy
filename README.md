@@ -25,7 +25,7 @@ pip install pyusb libusb-package matplotlib
 or 
 
 ```
-pip install git+https://github.com/ElTinmar/CCS100.git@main
+pip install git+https://github.com/ElTinmar/Thorlabs_CCS.git@main
 ```
 
 ### Windows
