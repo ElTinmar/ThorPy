@@ -1,5 +1,6 @@
 # TLCCS library
 
+Original C code from Thorlabs, slightly modified to compile on linux.  
 This is an attempt to use Thorlab's NI-VISA based library directly on linux.
 So far I could not get this to work.
 Use the pyusb re-implementation in the root directory instead.
