@@ -409,11 +409,11 @@ def get_scan_data_corrected_range(
         if i < idx_min or i > idx_max:
             scan_data[i] = 0
         else:
-            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_amplification_mult # this is fishy
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / min(amplitude_cor)
     return scan_data
 
 
-def find_centered_range(arr: array.array, center: int, threshold: float):
+def find_centered_range(arr: array.array, center: int, threshold: float) -> tuple[int, int, float, float]:
 
     n = len(arr)
     left = right = center
@@ -457,7 +457,7 @@ def find_centered_range(arr: array.array, center: int, threshold: float):
         if not expanded:
             break
 
-    return left, right  
+    return left, right, min_val, max_val
 
 def get_scan_data_corrected_noise(
         dev: usb.core.Device, 
@@ -469,7 +469,7 @@ def get_scan_data_corrected_noise(
     noise_multiplier = 10**(noise_amplification_dB/10)
     idx_center: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val >= center_wl)) 
 
-    idx_left, idx_right = find_centered_range(
+    idx_left, idx_right, min_correction, max_correction = find_centered_range(
         arr = data.user_amplitude_cal.amplitude_cor, 
         center = idx_center, 
         threshold = noise_multiplier
@@ -482,7 +482,7 @@ def get_scan_data_corrected_noise(
     for i in range(TLCCS_NUM_PIXELS):
         if i < idx_left or i > idx_right:
             scan_data[i] = 0
-        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_multiplier # not right
+        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / min_correction
     return scan_data
     
 def set_integration_time(dev: usb.core.Device, time: float):
@@ -974,8 +974,8 @@ if __name__ == '__main__':
     try:
         while True:
 
-            #spectrum = ccs100.get_scan_data_corrected_range(min_wl=450, max_wl=550)
-            spectrum = ccs100.get_scan_data_corrected_noise(center_wl=531.78, noise_amplification_dB=2.0)
+            spectrum = ccs100.get_scan_data_corrected_range(min_wl=450, max_wl=550)
+            #spectrum = ccs100.get_scan_data_corrected_noise(center_wl=531.78, noise_amplification_dB=3.0)
             #spectrum = ccs100.get_scan_data_factory()
             line.set_ydata(spectrum)
             ax.set_ylim(-0.01, 1.1*max(spectrum))
