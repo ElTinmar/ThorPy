@@ -83,20 +83,8 @@ Alternatively, they can be extracted from an older version of Thorlabs OSA softw
 with innoextract:
 
 ```bash
-sudo apt install innoextract
-curl -O https://www.thorlabs.com/software/THO/OSA/V2_90/ThorlabsOSASW_Full_setup.exe
-mkdir ccs_firmware
-mkdir temp_extract
-innoextract --extract --output-dir=temp_extract \
---include "app/CCS/inf/Loader/CCS100.spt" \
---include "app/CCS/inf/Loader/CCS125.spt" \
---include "app/CCS/inf/Loader/CCS150.spt" \
---include "app/CCS/inf/Loader/CCS175.spt" \
---include "app/CCS/inf/Loader/CCS200.spt" \
-ThorlabsOSASW_Full_setup.exe
-mv temp_extract/app/CCS/inf/Loader/CCS*.spt ccs_firmware/
-rm -rf temp_extract
-rm ThorlabsOSASW_Full_setup.exe
+chmod +x extract_ccs_firmware.sh
+./extract_ccs_firmware.sh
 ```
 
 ## Usage
