@@ -1,6 +1,11 @@
 # Most of the code is a pyUSB re-implementation of Thorlabs'
 # tlccs library, which is distributed under LGPL2.1.
 # The original C code can be found in the tlccs folder.
+#
+# Some of the original code has not been re-implemeted (in particular 
+# writing to the EEPROM), and some code was added 
+# (different amplitude correction modes handled by the ThorSpectra 
+# software, firmware upload for re-enumeration) 
 
 
 from dataclasses import dataclass, field
