@@ -380,8 +380,8 @@ def get_scan_data(
     return processed_scan_data
 
 def get_scan_data_factory(
-    dev: usb.core.Device, 
-    data: TLCCS_DATA
+        dev: usb.core.Device, 
+        data: TLCCS_DATA
     ) -> array.array:
     
     scan_data = get_scan_data(dev, data)
@@ -397,11 +397,11 @@ def get_scan_data_corrected_range(
     ) -> array.array:
     # This still seems slightly off somehow
 
-    idx_min = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > min_wl))
-    idx_max = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > max_wl))
-    amplitude_cor = data.user_amplitude_cal.amplitude_cor[idx_min:idx_max]
-    #noise_amplification_dB = 10*math.log10(max(amplitude_cor)/min(amplitude_cor))
-    noise_amplification_mult = max(amplitude_cor)/min(amplitude_cor)
+    idx_min: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > min_wl))
+    idx_max: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > max_wl))
+    amplitude_cor: float = data.user_amplitude_cal.amplitude_cor[idx_min:idx_max]
+    #noise_amplification_dB: float = 10*math.log10(max(amplitude_cor)/min(amplitude_cor))
+    noise_amplification_mult: float = max(amplitude_cor)/min(amplitude_cor)
     
     scan_data = get_scan_data(dev, data)
     for i in range(TLCCS_NUM_PIXELS):
@@ -411,16 +411,77 @@ def get_scan_data_corrected_range(
             scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_amplification_mult # this is fishy
     return scan_data
 
+
+def find_centered_range(arr, center, threshold):
+
+    n = len(arr)
+    left = right = center
+    min_val = max_val = arr[center]
+
+    while True:
+        expanded = False
+
+        # 1. Try symmetric expansion first
+        if left > 0 and right < n - 1:
+            new_left, new_right = left - 1, right + 1
+            new_min = min(min_val, arr[new_left], arr[new_right])
+            new_max = max(max_val, arr[new_left], arr[new_right])
+            if new_max / new_min <= threshold:
+                left, right = new_left, new_right
+                min_val, max_val = new_min, new_max
+                expanded = True
+
+        # 2. If symmetric fails (or one side blocked), try one-sided
+        if not expanded:
+            # try left-only
+            if left > 0:
+                new_left = left - 1
+                new_min = min(min_val, arr[new_left])
+                new_max = max(max_val, arr[new_left])
+                if new_max / new_min <= threshold:
+                    left = new_left
+                    min_val, max_val = new_min, new_max
+                    expanded = True
+
+            # try right-only
+            if not expanded and right < n - 1:
+                new_right = right + 1
+                new_min = min(min_val, arr[new_right])
+                new_max = max(max_val, arr[new_right])
+                if new_max / new_min <= threshold:
+                    right = new_right
+                    min_val, max_val = new_min, new_max
+                    expanded = True
+
+        if not expanded:
+            break
+
+    return left, right  
+
 def get_scan_data_corrected_noise(
-    dev: usb.core.Device, 
-    data: TLCCS_DATA, 
-    center_wl: float,
-    noise_amplification_dB: float
+        dev: usb.core.Device, 
+        data: TLCCS_DATA, 
+        center_wl: float,
+        noise_amplification_dB: float
     ) -> array.array:
-    # TODO find wavelength range around center for which given noise amplification is reached
+
+    noise_multiplier = 10**(noise_amplification_dB/10)
+    idx_center: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > center_wl))
+
+    idx_left, idx_right = find_centered_range(
+        arr = data.user_amplitude_cal.amplitude_cor, 
+        center = idx_center, 
+        threshold = noise_multiplier
+    )
+    wavelength_left = data.factory_wavelength_cal.wl[idx_left]
+    wavelength_right = data.factory_wavelength_cal.wl[idx_right]
+    print(wavelength_left, wavelength_right)
+
     scan_data = get_scan_data(dev, data)
     for i in range(TLCCS_NUM_PIXELS):
-        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * 10**(noise_amplification_dB/10)
+        if i < idx_left or i > idx_right:
+            scan_data[i] = 0
+        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_multiplier
     return scan_data
     
 def set_integration_time(dev: usb.core.Device, time: float):
