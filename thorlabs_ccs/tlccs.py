@@ -175,6 +175,7 @@ class TLCCS_ACOR:
     amplitude_cor: array.array = field(default_factory=lambda: array.array('f', [1.0]*TLCCS_NUM_PIXELS))
     valid: array.array = field(default_factory=lambda: array.array('B', [1]*TLCCS_NUM_PIXELS))
     min_cor: float = 0
+    max_cor: float = 0
     checksum: int = 0
 
 @dataclass
@@ -422,7 +423,7 @@ def get_scan_data_corrected_range(
         if i < idx_min or i > idx_max:
             scan_data[i] = 0
         else:
-            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_amplification_mult
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * data.user_amplitude_cal.max_cor/data.user_amplitude_cal.min_cor
     return scan_data
 
 
@@ -498,7 +499,7 @@ def get_scan_data_corrected_noise(
     for i in range(TLCCS_NUM_PIXELS):
         if i < idx_left or i > idx_right:
             scan_data[i] = 0
-        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * max_correction/data.user_amplitude_cal.min_cor
+        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * data.user_amplitude_cal.max_cor/data.user_amplitude_cal.min_cor
     return scan_data
     
 def set_integration_time(dev: usb.core.Device, time: float):
@@ -613,6 +614,7 @@ def get_amplitude_correction_array(
         amplitude_cor_cal.amplitude_cor[i] = a
 
     min_cor = TLCCS_AMP_CORR_FACT_MAX
+    max_cor = TLCCS_AMP_CORR_FACT_MAX
     for i in range(TLCCS_NUM_PIXELS):
         if amplitude_cor_cal.amplitude_cor[i] <= np.float32(TLCCS_AMP_CORR_FACT_MIN):
             amplitude_cor_cal.valid[i] = 0
@@ -622,10 +624,15 @@ def get_amplitude_correction_array(
             amplitude_cor_cal.valid[i] = 0
             amplitude_cor_cal.amplitude_cor[i] = TLCCS_AMP_CORR_FACT_MAX
 
-        if amplitude_cor_cal.valid[i] and amplitude_cor_cal.amplitude_cor[i] < min_cor:
-            min_cor = amplitude_cor_cal.amplitude_cor[i]
+        if amplitude_cor_cal.valid[i]:
+            if amplitude_cor_cal.amplitude_cor[i] < min_cor:
+                min_cor = amplitude_cor_cal.amplitude_cor[i]
+
+            if amplitude_cor_cal.amplitude_cor[i] > max_cor:
+                max_cor = amplitude_cor_cal.amplitude_cor[i]
 
     amplitude_cor_cal.min_cor = min_cor
+    amplitude_cor_cal.max_cor = max_cor
 
 def get_amplitude_correction(dev: usb.core.Device, data: TLCCS_DATA) -> None:
 
