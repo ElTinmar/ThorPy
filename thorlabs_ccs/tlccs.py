@@ -391,6 +391,16 @@ def get_scan_data(
     
     return processed_scan_data
 
+def get_scan_data_user(        
+        dev: usb.core.Device, 
+        data: TLCCS_DATA
+    ) -> array.array:
+
+    scan_data = get_scan_data(dev, data)
+    for i in range(TLCCS_NUM_PIXELS):
+        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i]
+    return scan_data
+    
 def get_scan_data_factory(
         dev: usb.core.Device, 
         data: TLCCS_DATA
@@ -420,7 +430,7 @@ def get_scan_data_corrected_range(
         if i < idx_min or i > idx_max:
             scan_data[i] = 0
         else:
-            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / min(amplitude_cor)
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / min(amplitude_cor) 
     return scan_data
 
 
