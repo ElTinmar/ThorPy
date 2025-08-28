@@ -484,7 +484,7 @@ def get_scan_data_corrected_noise(
     noise_multiplier = 10**(noise_amplification_dB/10)
     idx_center: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val >= center_wl)) 
 
-    idx_left, idx_right, min_correction = find_centered_range(
+    idx_left, idx_right, max_correction = find_centered_range(
         arr = data.user_amplitude_cal.amplitude_cor, 
         center = idx_center, 
         threshold = noise_multiplier,
