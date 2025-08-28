@@ -422,7 +422,7 @@ def get_scan_data_corrected_range(
         if i < idx_min or i > idx_max:
             scan_data[i] = 0
         else:
-            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / data.user_amplitude_cal.min_cor
+            scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * noise_amplification_mult
     return scan_data
 
 
@@ -498,7 +498,7 @@ def get_scan_data_corrected_noise(
     for i in range(TLCCS_NUM_PIXELS):
         if i < idx_left or i > idx_right:
             scan_data[i] = 0
-        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / data.user_amplitude_cal.min_cor
+        scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] * max_correction/data.user_amplitude_cal.min_cor
     return scan_data
     
 def set_integration_time(dev: usb.core.Device, time: float):
