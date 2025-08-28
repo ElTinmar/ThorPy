@@ -897,7 +897,7 @@ class TLCCS:
 
     def __init__(
             self, 
-            firmware_file: str = 'CCS100.spt', 
+            firmware_file: str = 'ccs_firmware/CCS100.spt', 
             PID_loader: int = 0x8080, 
             PID_spectro: int = 0x8081,
             serial_number: Optional[str] = None
