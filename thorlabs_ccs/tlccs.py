@@ -14,7 +14,7 @@ import usb.core
 import struct
 import time
 import math
-from typing import Optional, Tuple
+from typing import Optional, Tuple, NamedTuple, List
 import numpy as np
 
 import sys
@@ -31,6 +31,8 @@ class DeviceNotFound(Exception): ...
 class NoUserDataPoint(Exception): ...
 
 THORLABS_VID = 0x1313
+PID_RANGE = (0x8080, 0x8089)
+
 TLCCS_SERIAL_NO_LENGTH = 24
 TLCCS_MAX_USER_NAME_SIZE = 32
 TLCCS_NUM_POLY_POINTS = 4
@@ -892,6 +894,29 @@ def reset_device(dev: usb.core.Device):
         wIndex = 0x0000,
         data_or_wLength = 0 
     )
+
+class DevInfo(NamedTuple):
+    vid: int
+    pid: int
+    serial_number: str
+
+def list_spectrometers() -> List[DevInfo]:
+    
+    devices = usb.core.find(
+        idVendor = THORLABS_VID, 
+        backend = libusb_backend, 
+        find_all = True
+    )
+
+    res = []
+    for dev in devices:
+        if dev.idProduct in range(*PID_RANGE):
+            res.append(DevInfo(
+                vid = dev.idVendor,
+                pid = dev.idProduct,
+                serial_number = dev.serial_number # not sure if a serial number is reported without proper firmware
+            ))
+    return res
 
 class TLCCS:
 

@@ -1,11 +1,21 @@
+import usb.core
 import usbtmc
+import sys
+from typing import List, NamedTuple
+
+
+if sys.platform == 'win32':
+    import libusb_package
+    libusb_backend = libusb_package.get_libusb1_backend()
+else:
+    libusb_backend = None
 
 THORLABS_VID = 0x1313
 PM100D_PID = 0x8078
 LINE_FREQUENCY_EUROPE = 50
-S120C_APERTURE_SIZE = 9.5
-
-area = 3.14159 * (S120C_APERTURE_SIZE/2)**2
+S120C_APERTURE_SIZE_MM = 9.5
+PID_RANGE = (0x8078, 0x8079) # TODO check actual values
+area = 3.14159 * (S120C_APERTURE_SIZE_MM/2)**2
 
 # S120C 
 # Active Detector Area 	9.7 mm x 9.7 mm
@@ -15,6 +25,29 @@ area = 3.14159 * (S120C_APERTURE_SIZE/2)**2
 # beam or at an overfilled sensor the diameter of the sensor aperture.
 
 #TODO handle multiple devices with serial number
+
+class DevInfo(NamedTuple):
+    vid: int
+    pid: int
+    serial_number: str
+
+def list_powermeters() -> List[DevInfo]:
+    
+    devices = usb.core.find(
+        idVendor = THORLABS_VID, 
+        backend = libusb_backend, 
+        find_all = True
+    )
+
+    res = []
+    for dev in devices:
+        if dev.idProduct in range(*PID_RANGE):
+            res.append(DevInfo(
+                vid = dev.idVendor,
+                pid = dev.idProduct,
+                serial_number = dev.serial_number # not sure if a serial number is reported without proper firmware
+            ))
+    return res
 
 class TLPMD:
 
@@ -48,3 +81,4 @@ class TLPMD:
 if __name__ == '__main__':
 
     dev = TLPMD()
+    dev.get_power_density()
