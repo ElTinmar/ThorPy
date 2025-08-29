@@ -4,14 +4,15 @@ setup(
     name='thorlabs_ccs',
     author='Martin Privat',
     version='0.1.0',
-    packages=['thorlabs_ccs'],
+    packages=['thorlabs_ccs', 'thorlabs_pmd'],
     license='LGPL2.1',
-    description='Control Thorlabs CCS spectrometer',
+    description='Control Thorlabs devices',
     long_description=open('README.md').read(),
     install_requires=[
         "numpy",
         "pyUSB",
         "libusb-package",
+        'python-usbtmc'
         "matplotlib"
     ]
 )

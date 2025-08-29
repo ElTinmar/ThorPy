@@ -10,4 +10,5 @@ dependencies:
 - pip:
   - pyusb
   - libusb-package
+  - python-usbtmc
 
