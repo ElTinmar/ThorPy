@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='thorlabs_ccs',
     author='Martin Privat',
-    version='0.1.0',
+    version='0.1.1',
     packages=['thorlabs_ccs', 'thorlabs_pmd'],
     license='LGPL2.1',
     description='Control Thorlabs devices',
@@ -12,7 +12,7 @@ setup(
         "numpy",
         "pyUSB",
         "libusb-package",
-        'python-usbtmc'
+        "python-usbtmc",
         "matplotlib"
     ]
 )
