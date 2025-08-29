@@ -1,4 +1,4 @@
-name: thorlabs_ccs
+name: ThorPy
 channels:
 - conda-forge
 dependencies:
