@@ -1028,6 +1028,9 @@ class TLCCS:
     def set_integration_time(self, integration_time: float):
         set_integration_time(self.dev, integration_time)
 
+    def get_integration_time(self) -> float:
+        return get_integration_time(self.dev)
+    
     def get_scan_data_factory(self) -> array.array:
         status = 0x0000
         while (status & TLCCS_STATUS_SCAN_TRANSFER) == 0:
