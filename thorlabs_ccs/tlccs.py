@@ -421,14 +421,13 @@ def get_scan_data_corrected_range(
         data: TLCCS_DATA, 
         min_wl: float,
         max_wl: float
-    ) -> array.array:
+    ) -> Tuple[array.array, float]:
 
     idx_min: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > min_wl))
     idx_max: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val > max_wl))
     amplitude_cor: array.array = data.user_amplitude_cal.amplitude_cor[idx_min:idx_max]
     noise_amplification_mult: float = max(amplitude_cor)/min(amplitude_cor)
     noise_amplification_dB: float = 10*math.log10(noise_amplification_mult)
-    print(noise_amplification_dB)
     
     scan_data = get_scan_data(dev, data)
     for i in range(TLCCS_NUM_PIXELS):
@@ -436,7 +435,7 @@ def get_scan_data_corrected_range(
             scan_data[i] = 0
         else:
             scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / min(amplitude_cor)
-    return scan_data
+    return scan_data, noise_amplification_dB
 
 
 def find_centered_range(arr: array.array, center: int, threshold: float) -> Tuple[int, int, float, float]:
@@ -490,7 +489,7 @@ def get_scan_data_corrected_noise(
         data: TLCCS_DATA, 
         center_wl: float,
         noise_amplification_dB: float
-    ) -> array.array:
+    ) -> Tuple[array.array, float, float]:
 
     noise_multiplier = 10**(noise_amplification_dB/10)
     idx_center: int = next((i for i, val in enumerate(data.factory_wavelength_cal.wl) if val >= center_wl)) 
@@ -502,14 +501,14 @@ def get_scan_data_corrected_noise(
     )
     wavelength_left = data.factory_wavelength_cal.wl[idx_left]
     wavelength_right = data.factory_wavelength_cal.wl[idx_right]
-    print(wavelength_left, wavelength_right)
 
     scan_data = get_scan_data(dev, data)
     for i in range(TLCCS_NUM_PIXELS):
         if i < idx_left or i > idx_right:
             scan_data[i] = 0
         scan_data[i] *= data.user_amplitude_cal.amplitude_cor[i] / min_correction
-    return scan_data
+    
+    return scan_data, wavelength_left, wavelength_right
     
 def set_integration_time(dev: usb.core.Device, time: float):
     
@@ -1039,7 +1038,7 @@ class TLCCS:
             self, 
             min_wl: float = 321.45, 
             max_wl: float = 742.11
-        ) -> array.array:
+        ) -> Tuple[array.array, float]:
         
         status = 0x0000
         while (status & TLCCS_STATUS_SCAN_TRANSFER) == 0:
@@ -1056,7 +1055,7 @@ class TLCCS:
             self, 
             center_wl: float = 531.78, 
             noise_amplification_dB: float = 1.0
-        ) -> array.array:
+        ) -> Tuple[array.array, float, float]:
         
         status = 0x0000
         while (status & TLCCS_STATUS_SCAN_TRANSFER) == 0:
