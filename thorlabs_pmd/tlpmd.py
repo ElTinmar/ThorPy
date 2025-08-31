@@ -10,6 +10,8 @@ if sys.platform == 'win32':
 else:
     libusb_backend = None
 
+class DeviceNotFound(Exception): ...
+
 THORLABS_VID = 0x1313
 PM100D_PID = 0x8078
 LINE_FREQUENCY_EUROPE = 50
