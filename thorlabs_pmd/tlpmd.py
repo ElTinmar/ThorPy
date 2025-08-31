@@ -24,8 +24,6 @@ area = 3.14159 * (S120C_APERTURE_SIZE_MM/2)**2
 # J/cm² in the right sub display it is necessary to enter the diameter of the incident
 # beam or at an overfilled sensor the diameter of the sensor aperture.
 
-#TODO handle multiple devices with serial number
-
 class DevInfo(NamedTuple):
     vid: int
     pid: int
@@ -36,27 +34,31 @@ def list_powermeters() -> List[DevInfo]:
     devices = usb.core.find(
         idVendor = THORLABS_VID, 
         backend = libusb_backend, 
+        custom_match = lambda d: d.idProduct in range(*PID_RANGE),
         find_all = True
     )
 
     res = []
     for dev in devices:
-        if dev.idProduct in range(*PID_RANGE):
-            res.append(DevInfo(
-                vid = dev.idVendor,
-                pid = dev.idProduct,
-                serial_number = dev.serial_number # not sure if a serial number is reported without proper firmware
-            ))
+        res.append(DevInfo(
+            vid = dev.idVendor,
+            pid = dev.idProduct,
+            serial_number = dev.serial_number 
+        ))
+
     return res
 
 class TLPMD:
 
     def __init__(
             self,
-            PID: int = PM100D_PID,
+            device_info: DevInfo,
         ) -> None:
         
-        self.instr = usbtmc.Instrument(THORLABS_VID, PID)
+        self.instr = usbtmc.Instrument(device_info.vid, device_info.pid, device_info.serial_number)
+        self.initialize()
+        
+    def initialize(self): 
         self.instr.write("SENS:RANGE:AUTO ON")
         self.instr.write("SENS:POW:UNIT W")
         self.instr.write("SENS:AVER:1000")
@@ -75,10 +77,10 @@ class TLPMD:
         return float(power)
     
     def get_power_density(self) -> float:
-        
         return self.get_power()/self.sensor_area
 
 if __name__ == '__main__':
 
-    dev = TLPMD()
+    powermeters = list_powermeters()
+    dev = TLPMD(powermeters[0])
     dev.get_power_density()
