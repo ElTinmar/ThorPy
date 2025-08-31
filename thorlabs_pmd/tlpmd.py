@@ -63,7 +63,8 @@ class TLPMD:
     def initialize(self): 
         self.instr.write("SENS:RANGE:AUTO ON")
         self.instr.write("SENS:POW:UNIT W")
-        self.instr.write("SENS:AVER 1000")    
+        self.instr.write("SENS:AVER 1000")
+        self.beam_diameter = self.get_beam_diameter()    
     
     def get_line_frequency(self) -> float:
         return float(self.instr.ask(f"SYST:LFR?"))
@@ -76,6 +77,7 @@ class TLPMD:
     
     def set_beam_diameter(self, diameter: float) -> None:
         self.instr.write(f"SENS:CORR:BEAM {diameter}")
+        self.beam_diameter = diameter
 
     def get_wavelength(self) -> float:
         return float(self.instr.ask(f"SENS:CORR:WAV?"))
@@ -88,7 +90,8 @@ class TLPMD:
         return float(power)
     
     def get_power_density(self) -> float:
-        return self.get_power()/self.sensor_area
+        area = 3.14159 * (self.beam_diameter/2)**2
+        return self.get_power()/area
 
 if __name__ == '__main__':
 
