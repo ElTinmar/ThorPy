@@ -14,8 +14,9 @@ import usb.core
 import struct
 import time
 import math
-from typing import Optional, Tuple, NamedTuple, List
+from typing import Optional, Tuple, NamedTuple, Dict, List
 import numpy as np
+from pathlib import Path
 
 import sys
 if sys.platform == 'win32':
@@ -29,10 +30,22 @@ class InvalidUserData(Exception): ...
 class Overexposure(Exception): ...
 class DeviceNotFound(Exception): ...
 class NoUserDataPoint(Exception): ...
+class RenumerationFailed(Exception): ...
 
 THORLABS_VID = 0x1313
 PID_RANGE = (0x8080, 0x8089)
-
+CCS100_PID_U = 0x8080  # CCS100 Compact Spectrometer
+CCS100_PID = 0x8081  # CCS100 Compact Spectrometer
+CCS125_PID_U = 0x8082  # CCS125 Special Spectrometer
+CCS125_PID = 0x8083  # CCS125 Special Spectrometer 
+CCS150_PID_U = 0x8084  # CCS150 UV Spectrometer 
+CCS150_PID = 0x8085  # CCS150 UV Spectrometer 
+CCS175_PID_U = 0x8086  # CCS175 NIR Spectrometer
+CCS175_PID = 0x8087  # CCS175 NIR Spectrometer 
+CCS200_PID_U = 0x8088  # CCS200 UV-NIR Spectrometer
+CCS200_PID = 0x8089  # CCS200 UV-NIR Spectrometer  
+DEFAULT_RENUMERATION_TIMEOUT = 10.0
+      
 TLCCS_SERIAL_NO_LENGTH = 24
 TLCCS_MAX_USER_NAME_SIZE = 32
 TLCCS_NUM_POLY_POINTS = 4
@@ -867,24 +880,6 @@ def dump_ram(dev: usb.core.Device) -> Tuple[array.array, array.array]:
 
     return program, data
 
-def renumerate(PID: int = 0x8080, firmware_file: str = 'CCS100.spt'):
-    
-    devices = usb.core.find(
-        idVendor = THORLABS_VID, 
-        idProduct = PID, 
-        backend = libusb_backend, 
-        find_all = True
-    )
-    
-    firmware = parse_spt(firmware_file)
-    
-    for dev in devices:
-        print('Uploading firmware...')
-        dev.set_configuration()
-        upload_firmware(dev, firmware)
-    
-    time.sleep(5) # wait for re-enumeration
-
 def reset_device(dev: usb.core.Device):
 
     dev.ctrl_transfer(
@@ -895,61 +890,122 @@ def reset_device(dev: usb.core.Device):
         data_or_wLength = 0 
     )
 
+
+def wait_for_device(
+        idVendor: int, 
+        idProduct: int, 
+        port_numbers: Tuple, 
+        timeout: float = DEFAULT_RENUMERATION_TIMEOUT
+    ) -> usb.core.Device:
+
+    start = time.time()
+    while time.time() - start < timeout:
+        dev = usb.core.find(
+            idVendor = idVendor, 
+            idProduct = idProduct,
+            backend = libusb_backend, 
+            custom_match = lambda d: d.port_numbers == port_numbers
+        )
+        if dev is not None:
+            return dev
+        
+        time.sleep(0.1) 
+    
+    raise RenumerationFailed(f"Device {idVendor:04x}:{idProduct:04x} not found after {timeout}s")
+
+
+def renumerate(
+        PID: int, 
+        port_numbers: Tuple,
+        firmware_file: str
+    ) -> usb.core.Device:
+    
+    dev = usb.core.find(
+        idVendor = THORLABS_VID, 
+        idProduct = PID, 
+        backend = libusb_backend, 
+        custom_match = lambda d: d.port_numbers == port_numbers
+    )
+
+    if dev is None:
+        raise DeviceNotFound
+    
+    firmware = parse_spt(firmware_file)
+    print('Uploading firmware...')
+    dev.set_configuration()
+    upload_firmware(dev, firmware)
+    new_dev = wait_for_device(
+        THORLABS_VID, 
+        PID+1, 
+        port_numbers
+    )
+    return new_dev
+
+
 class DevInfo(NamedTuple):
     vid: int
     pid: int
     serial_number: str
 
-def list_spectrometers() -> List[DevInfo]:
+
+DEFAULT_FIRMWARE_PATH = Path('ccs_firmware')
+DEFAULT_FIRMWARE_FILE = {
+    CCS100_PID_U: DEFAULT_FIRMWARE_PATH / 'CCS100.spt',
+    CCS125_PID_U: DEFAULT_FIRMWARE_PATH / 'CCS125.spt',
+    CCS150_PID_U: DEFAULT_FIRMWARE_PATH / 'CCS150.spt',
+    CCS175_PID_U: DEFAULT_FIRMWARE_PATH / 'CCS175.spt',
+    CCS200_PID_U: DEFAULT_FIRMWARE_PATH / 'CCS200.spt',
+}
+
+def list_spectrometers(pid_firmware_map: Dict = DEFAULT_FIRMWARE_PATH) -> List[DevInfo]:
     
     devices = usb.core.find(
         idVendor = THORLABS_VID, 
         backend = libusb_backend, 
+        custom_match = lambda d: d.idProduct in range(*PID_RANGE),
         find_all = True
     )
 
     res = []
     for dev in devices:
-        if dev.idProduct in range(*PID_RANGE):
+        
+        # device already initialized
+        if dev.idProduct & 1:
             res.append(DevInfo(
                 vid = dev.idVendor,
                 pid = dev.idProduct,
-                serial_number = dev.serial_number # not sure if a serial number is reported without proper firmware
+                serial_number = dev.serial_number 
             ))
+
+        # upload firmware
+        else:
+            port_numbers = dev.port_numbers
+            new_dev = renumerate(
+                PID = dev.idProduct, 
+                firmware_file = pid_firmware_map[dev.idProduct],
+                port_numbers = port_numbers
+                )
+            res.append(DevInfo(
+                vid = new_dev.idVendor,
+                pid = new_dev.idProduct,
+                serial_number = new_dev.serial_number 
+            ))
+
     return res
 
 class TLCCS:
 
     def __init__(
             self, 
-            firmware_file: str = 'ccs_firmware/CCS100.spt', 
-            PID_loader: int = 0x8080, 
-            PID_spectro: int = 0x8081,
-            serial_number: Optional[str] = None
+            device_info: DevInfo
         ):
 
-        renumerate(PID_loader, firmware_file)
-
-        if serial_number is None:
-            # find the first device
-            self.dev = usb.core.find(
-                idVendor = THORLABS_VID, 
-                idProduct = PID_spectro, 
-                backend = libusb_backend
-            )
-        
-        else:
-            devices = usb.core.find(
-                idVendor = THORLABS_VID, 
-                idProduct = PID_spectro, 
-                backend = libusb_backend,
-                find_all = True
-            )
-            
-            self.dev = None
-            for dev in devices:
-                if dev.serial_number == serial_number:
-                    self.dev = dev
+        self.dev = usb.core.find(
+            idVendor = device_info.vid, 
+            idProduct = device_info.pid, 
+            backend = libusb_backend,
+            custom_match = lambda d: d.serial_number == device_info.serial_number,
+        )
 
         if self.dev is None:
             raise DeviceNotFound
@@ -1020,11 +1076,10 @@ if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
 
+    spectro = list_spectrometers()
+
     ccs100 = TLCCS(
-        firmware_file = 'ccs_firmware/CCS100.spt',
-        PID_loader = 0x8080,
-        PID_spectro = 0x8081,
-        serial_number = 'M00300454'
+        device_info = spectro[0]
     )
 
     ccs100.set_integration_time(1)
