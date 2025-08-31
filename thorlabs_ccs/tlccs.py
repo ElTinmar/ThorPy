@@ -958,6 +958,7 @@ DEFAULT_FIRMWARE_FILE = {
 }
 
 def list_spectrometers(pid_firmware_map: Dict = DEFAULT_FIRMWARE_PATH) -> List[DevInfo]:
+    '''list spectrometers in the CCS family. Uploads firmware if necessary'''
     
     devices = usb.core.find(
         idVendor = THORLABS_VID, 
@@ -977,7 +978,7 @@ def list_spectrometers(pid_firmware_map: Dict = DEFAULT_FIRMWARE_PATH) -> List[D
                 serial_number = dev.serial_number 
             ))
 
-        # upload firmware
+        # need to upload firmware
         else:
             port_numbers = dev.port_numbers
             new_dev = renumerate(

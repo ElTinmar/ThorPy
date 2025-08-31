@@ -97,10 +97,10 @@ Get single scan:
 ```python
 from thorlabs_ccs import TLCCS
 
+spectro = list_spectrometers()
+
 ccs100 = TLCCS(
-    firmware_file = 'ccs_firmware/CCS100.spt',
-    PID_loader = 0x8080,
-    PID_spectro = 0x8081
+    device_info = spectro[0]
 )
 
 ccs100.set_integration_time(0.1)
@@ -115,10 +115,9 @@ from thorlabs_ccs import TLCCS
 import matplotlib.pyplot as plt
 import array
 
+spectro = list_spectrometers()
 ccs100 = TLCCS(
-    firmware_file = 'ccs_firmware/CCS100.spt',
-    PID_loader = 0x8080,
-    PID_spectro = 0x8081
+    device_info = spectro[0]
 )
 
 ccs100.set_integration_time(0.1)
