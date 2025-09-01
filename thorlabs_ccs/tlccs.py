@@ -1073,10 +1073,7 @@ class TLCCS:
     
     def close(self):
         self.reset()
-
-        if not self.dev.is_kernel_driver_active(0):
-            self.dev.attach_kernel_driver(0)
-
+        self.dev.release_interface()
         self.dev = None
         self.data = None
     
