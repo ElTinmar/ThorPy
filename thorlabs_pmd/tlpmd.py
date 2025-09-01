@@ -1,8 +1,8 @@
 import usb.core
+import usb.util
 import usbtmc
 import sys
 from typing import List, NamedTuple, Tuple
-
 
 if sys.platform == 'win32':
     import libusb_package
@@ -57,16 +57,28 @@ class TLPMD:
             device_info: DevInfo,
         ) -> None:
         
+        
+        dev = usb.core.find(            
+            idVendor = device_info.vid, 
+            idProduct = device_info.pid, 
+            backend = libusb_backend,
+            custom_match = lambda d: d.serial_number == device_info.serial_number
+        )
+        if dev is None:
+            raise DeviceNotFound
+        
+        usb.util.dispose_resources(dev)
         self.instr = usbtmc.Instrument(device_info.vid, device_info.pid, device_info.serial_number)
         self.initialize()
         
     def initialize(self): 
-        self.instr.write("*CLS")
         self.instr.write("SENS:POW:RANGE:AUTO ON")
         self.instr.write("SENS:POW:UNIT W")
-        self.instr.write("SENS:AVER 1000")
-        self.instr.ask("*OPC?")
+        self.instr.write("SENS:AVER 300")
 
+    def get_beam_diameter_mm(self) -> float:
+        return float(self.instr.ask("SENS:CORR:BEAM?"))
+    
     def check_error_code(self) -> None:
         error = self.instr.ask("SYST:ERR?")
         code, descr = error.split(',', 1)
@@ -80,14 +92,17 @@ class TLPMD:
     def set_line_frequency_Hz(self, line_frequency: float) -> None:
         self.instr.write(f"SYST:LFR {line_frequency}")
         self.check_error_code()
-    
-    def get_beam_diameter_mm(self) -> float:
-        return float(self.instr.ask("SENS:CORR:BEAM?"))
-    
+
     def set_beam_diameter_mm(self, diameter: float) -> None:
         self.instr.write(f"SENS:CORR:BEAM {diameter}")
         self.check_error_code()
-        
+
+    def get_max_wavelength_nm(self) -> float:
+        return float(self.instr.ask(f"SENS:CORR:WAV? MAX"))
+    
+    def get_min_wavelength_nm(self) -> float:
+        return float(self.instr.ask(f"SENS:CORR:WAV? MIN"))
+    
     def get_wavelength_nm(self) -> float:
         return float(self.instr.ask(f"SENS:CORR:WAV?"))
 
