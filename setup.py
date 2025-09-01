@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='thorlabs_ccs',
     author='Martin Privat',
-    version='0.2.17',
+    version='0.2.18',
     packages=['thorlabs_ccs', 'thorlabs_pmd'],
     license='LGPL2.1',
     description='Control Thorlabs devices',
