@@ -1074,7 +1074,7 @@ class TLCCS:
     
     def close(self):
         self.reset()
-        usb.util.release_interface(self.dev)
+        usb.util.dispose_resources(self.dev)
         self.dev = None
         self.data = None
     
