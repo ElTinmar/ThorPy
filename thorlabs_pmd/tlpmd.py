@@ -87,7 +87,7 @@ class TLPMD:
         power = self.instr.ask("MEAS:POW?")
         return float(power)*10**3
     
-    def get_power_density_mw_cm2(self) -> float:
+    def get_power_density_mW_cm2(self) -> float:
         beam_diameter_cm = self.get_beam_diameter_mm() * 0.1
         area_cm2 = 3.14159 * (beam_diameter_cm/2)**2
         return self.get_power_mW()/area_cm2
