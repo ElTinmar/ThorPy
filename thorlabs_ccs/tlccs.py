@@ -1071,9 +1071,19 @@ class TLCCS:
             noise_amplification_dB = noise_amplification_dB
         )
     
+    def close(self):
+        self.reset()
+        self.dev = None
+        self.data = None
+    
     def reset(self):
         reset_device(self.dev)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 if __name__ == '__main__':
 

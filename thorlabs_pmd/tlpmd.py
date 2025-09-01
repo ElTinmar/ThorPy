@@ -104,13 +104,19 @@ class TLPMD:
 
     def clear(self) -> None:
         self.instr.clear()
-        
+
     def reset(self) -> None:
         self.instr.write(f"*RST")
 
     def close(self) -> None:
         self.instr.close()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        
 if __name__ == '__main__':
 
     powermeters = list_powermeters()
