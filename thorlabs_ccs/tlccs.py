@@ -11,6 +11,7 @@
 from dataclasses import dataclass, field
 import array
 import usb.core
+import usb.util
 import struct
 import time
 import math
@@ -1073,7 +1074,7 @@ class TLCCS:
     
     def close(self):
         self.reset()
-        self.dev.release_interface()
+        usb.util.release_interface(self.dev)
         self.dev = None
         self.data = None
     
