@@ -110,13 +110,14 @@ class TLPMD:
 
     def close(self) -> None:
         self.instr.close()
+        self.instr = None
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-        
+
 if __name__ == '__main__':
 
     powermeters = list_powermeters()
