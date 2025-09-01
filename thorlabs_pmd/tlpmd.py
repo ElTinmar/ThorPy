@@ -58,7 +58,6 @@ class TLPMD:
         ) -> None:
         
         self.instr = usbtmc.Instrument(device_info.vid, device_info.pid, device_info.serial_number)
-        self.instr.timeout = 10
         self.initialize()
         
     def initialize(self): 
