@@ -65,32 +65,32 @@ class TLPMD:
         self.instr.write("SENS:POW:UNIT W")
         self.instr.write("SENS:AVER 1000")
     
-    def get_line_frequency(self) -> float:
+    def get_line_frequency_Hz(self) -> float:
         return float(self.instr.ask(f"SYST:LFR?"))
 
-    def set_line_frequency(self, line_frequency: float) -> None:
+    def set_line_frequency_Hz(self, line_frequency: float) -> None:
         self.instr.write(f"SYST:LFR {line_frequency}")
     
-    def get_beam_diameter(self) -> float:
+    def get_beam_diameter_mm(self) -> float:
         return float(self.instr.ask("SENS:CORR:BEAM?"))
     
-    def set_beam_diameter(self, diameter: float) -> None:
+    def set_beam_diameter_mm(self, diameter: float) -> None:
         self.instr.write(f"SENS:CORR:BEAM {diameter}")
 
-    def get_wavelength(self) -> float:
+    def get_wavelength_nm(self) -> float:
         return float(self.instr.ask(f"SENS:CORR:WAV?"))
 
-    def set_wavelength(self, wavelength: float) -> None:
+    def set_wavelength_nm(self, wavelength: float) -> None:
         self.instr.write(f"SENS:CORR:WAV {wavelength}")
 
-    def get_power(self) -> float:
+    def get_power_mW(self) -> float:
         power = self.instr.ask("MEAS:POW?")
-        return float(power)
+        return float(power*10**3)
     
-    def get_power_density(self) -> float:
-        beam_diameter = self.get_beam_diameter()
-        area = 3.14159 * (beam_diameter/2)**2
-        return self.get_power()/area
+    def get_power_density_mw_cm2(self) -> float:
+        beam_diameter_cm = self.get_beam_diameter_mm() * 0.1
+        area_cm2 = 3.14159 * (beam_diameter_cm/2)**2
+        return self.get_power_mW()/area_cm2
 
     def reset(self) -> None:
         self.instr.write(f"*RST")
