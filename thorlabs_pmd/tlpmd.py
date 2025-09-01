@@ -1,7 +1,7 @@
 import usb.core
 import usbtmc
 import sys
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Tuple
 
 
 if sys.platform == 'win32':
@@ -61,10 +61,18 @@ class TLPMD:
         self.initialize()
         
     def initialize(self): 
-        self.instr.write("SENS:RANGE:AUTO ON")
+        self.instr.write("*CLS")
+        self.instr.write("SENS:POW:RANGE:AUTO ON")
         self.instr.write("SENS:POW:UNIT W")
         self.instr.write("SENS:AVER 1000")
-    
+
+    def check_error_code(self) -> None:
+        error = self.instr.ask("SYST:ERR?")
+        code, descr = error.split(',', 1)
+        code, descr = int(code), descr.strip('"')
+        if code != 0:
+            raise RuntimeError(f'Error code {code}: {descr}')
+
     def get_line_frequency_Hz(self) -> float:
         return float(self.instr.ask(f"SYST:LFR?"))
 
@@ -76,12 +84,14 @@ class TLPMD:
     
     def set_beam_diameter_mm(self, diameter: float) -> None:
         self.instr.write(f"SENS:CORR:BEAM {diameter}")
-
+        self.check_error_code()
+        
     def get_wavelength_nm(self) -> float:
         return float(self.instr.ask(f"SENS:CORR:WAV?"))
 
     def set_wavelength_nm(self, wavelength: float) -> None:
         self.instr.write(f"SENS:CORR:WAV {wavelength}")
+        self.check_error_code()
 
     def get_power_mW(self) -> float:
         power = self.instr.ask("MEAS:POW?")
@@ -95,8 +105,13 @@ class TLPMD:
     def reset(self) -> None:
         self.instr.write(f"*RST")
 
+    def close(self) -> None:
+        self.instr.close()
+
 if __name__ == '__main__':
 
     powermeters = list_powermeters()
     dev = TLPMD(powermeters[0])
-    dev.get_power_density()
+    dev.set_wavelength_nm(550)
+    print(dev.get_power_density_mW_cm2())
+    dev.close()
