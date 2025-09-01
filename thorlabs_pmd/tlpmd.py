@@ -61,7 +61,6 @@ class TLPMD:
         self.initialize()
         
     def initialize(self): 
-        self.stop_scan()
         self.instr.write("SENS:POW:RANGE:AUTO ON")
         self.instr.write("SENS:POW:UNIT W")
         self.instr.write("SENS:AVER 300")
@@ -75,12 +74,6 @@ class TLPMD:
         code, descr = int(code), descr.strip('"')
         if code != 0:
             raise RuntimeError(f'Error code {code}: {descr}')
-        
-    def start_single_scan(self) -> None:
-        self.instr.write("INIT")
-
-    def stop_scan(self) -> None:
-        self.instr.write("ABORT")
 
     def get_line_frequency_Hz(self) -> float:
         return float(self.instr.ask(f"SYST:LFR?"))
@@ -122,7 +115,6 @@ class TLPMD:
         self.instr.write(f"*RST")
 
     def close(self) -> None:
-        self.stop_scan()
         self.instr.close()
         self.instr = None
 
