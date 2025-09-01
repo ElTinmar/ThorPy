@@ -956,7 +956,7 @@ DEFAULT_FIRMWARE_FILE = {
     CCS200_PID_U: DEFAULT_FIRMWARE_PATH / 'CCS200.spt',
 }
 
-def list_spectrometers(pid_firmware_map: Dict = DEFAULT_FIRMWARE_PATH) -> List[DevInfo]:
+def list_spectrometers(pid_firmware_map: Dict[int, Path] = DEFAULT_FIRMWARE_FILE) -> List[DevInfo]:
     '''list spectrometers in the CCS family. Uploads firmware if necessary'''
     
     devices = usb.core.find(
