@@ -102,6 +102,9 @@ class TLPMD:
         area_cm2 = 3.14159 * (beam_diameter_cm/2)**2
         return self.get_power_mW()/area_cm2
 
+    def clear(self) -> None:
+        self.instr.clear()
+        
     def reset(self) -> None:
         self.instr.write(f"*RST")
 
