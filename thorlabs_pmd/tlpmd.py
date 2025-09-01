@@ -65,6 +65,7 @@ class TLPMD:
         self.instr.write("SENS:POW:RANGE:AUTO ON")
         self.instr.write("SENS:POW:UNIT W")
         self.instr.write("SENS:AVER 1000")
+        self.instr.ask("*OPC?")
 
     def check_error_code(self) -> None:
         error = self.instr.ask("SYST:ERR?")
@@ -78,6 +79,7 @@ class TLPMD:
 
     def set_line_frequency_Hz(self, line_frequency: float) -> None:
         self.instr.write(f"SYST:LFR {line_frequency}")
+        self.check_error_code()
     
     def get_beam_diameter_mm(self) -> float:
         return float(self.instr.ask("SENS:CORR:BEAM?"))
