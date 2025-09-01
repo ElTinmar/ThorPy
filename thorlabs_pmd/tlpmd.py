@@ -61,9 +61,13 @@ class TLPMD:
         self.initialize()
         
     def initialize(self): 
+        print(self.instr.ask("*IDN?"))
         self.instr.write("SENS:POW:RANGE:AUTO ON")
+        print(self.instr.ask("SENS:POW:RANGE:AUTO?"))
         self.instr.write("SENS:POW:UNIT W")
+        print(self.instr.ask("SENS:POW:UNIT?"))
         self.instr.write("SENS:AVER 300")
+        print(self.instr.ask("SENS:AVER?"))
 
     def get_beam_diameter_mm(self) -> float:
         # FIXME: random usb timeout issues
