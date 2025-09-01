@@ -92,6 +92,9 @@ class TLPMD:
         area = 3.14159 * (beam_diameter/2)**2
         return self.get_power()/area
 
+    def reset(self) -> None:
+        self.instr.write(f"*RST")
+
 if __name__ == '__main__':
 
     powermeters = list_powermeters()
