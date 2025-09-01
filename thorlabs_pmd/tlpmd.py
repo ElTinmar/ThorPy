@@ -66,6 +66,7 @@ class TLPMD:
         self.instr.write("SENS:AVER 300")
 
     def get_beam_diameter_mm(self) -> float:
+        # FIXME: random usb timeout issues
         return float(self.instr.ask("SENS:CORR:BEAM?"))
     
     def check_error_code(self) -> None:
