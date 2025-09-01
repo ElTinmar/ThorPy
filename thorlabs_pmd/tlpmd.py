@@ -1,8 +1,8 @@
 import usb.core
-import usb.util
 import usbtmc
 import sys
 from typing import List, NamedTuple, Tuple
+import usb.core
 
 if sys.platform == 'win32':
     import libusb_package
@@ -57,17 +57,6 @@ class TLPMD:
             device_info: DevInfo,
         ) -> None:
         
-        
-        dev = usb.core.find(            
-            idVendor = device_info.vid, 
-            idProduct = device_info.pid, 
-            backend = libusb_backend,
-            custom_match = lambda d: d.serial_number == device_info.serial_number
-        )
-        if dev is None:
-            raise DeviceNotFound
-        
-        usb.util.dispose_resources(dev)
         self.instr = usbtmc.Instrument(device_info.vid, device_info.pid, device_info.serial_number)
         self.initialize()
         
