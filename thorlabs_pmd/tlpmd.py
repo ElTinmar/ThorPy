@@ -9,6 +9,9 @@ if sys.platform == 'win32':
 else:
     libusb_backend = None
 
+REN_CONTROL = 160 # Optional. Mechanism to enable or disable local controls on a device.
+GO_TO_LOCAL = 161 # Optional. Mechanism to enable local controls on a device. 
+
 class DeviceNotFound(Exception): ...
 
 THORLABS_VID = 0x1313
@@ -57,7 +60,7 @@ class TLPMD:
         ) -> None:
         
         self.instr = usbtmc.Instrument(device_info.vid, device_info.pid, device_info.serial_number)
-        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=0xA0, wValue=0x0001, wIndex=0x0000, data_or_wLength=1))
+        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=REN_CONTROL, wValue=0x0001, wIndex=0x0000, data_or_wLength=1))
         self.initialize()
         
     def initialize(self): 
@@ -192,8 +195,8 @@ class TLPMD:
         return self.get_power_mW()/area_cm2
 
     def close(self) -> None:
-        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=0xA1, wValue=0x0000, wIndex=0x0000, data_or_wLength=1))
-        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=0xA0, wValue=0x0000, wIndex=0x0000, data_or_wLength=1))
+        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=GO_TO_LOCAL, wValue=0x0000, wIndex=0x0000, data_or_wLength=1))
+        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=REN_CONTROL, wValue=0x0000, wIndex=0x0000, data_or_wLength=1))
         self.instr.close()
         self.instr = None
 
