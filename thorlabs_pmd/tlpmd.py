@@ -60,6 +60,7 @@ class TLPMD:
         ) -> None:
         
         self.instr = usbtmc.Instrument(device_info.vid, device_info.pid, device_info.serial_number)
+        self.instr.clear = lambda: None
         print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=REN_CONTROL, wValue=0x0001, wIndex=0x0000, data_or_wLength=1))
         self.initialize()
         
