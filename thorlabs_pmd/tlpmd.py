@@ -73,7 +73,6 @@ class TLPMD:
         self.instr.write("SENS:AVER:COUN 1")
         self.check_error_code()
 
-
         # self.instr.write("*CLS;*SRE 0;*ESE 0;:STAT:PRES")
         # self.check_error_code()
 
