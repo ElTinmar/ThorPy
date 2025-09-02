@@ -57,6 +57,7 @@ class TLPMD:
         ) -> None:
         
         self.instr = usbtmc.Instrument(device_info.vid, device_info.pid, device_info.serial_number)
+        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=0xA0, wValue=0x0001, wIndex=0x0000, data_or_wLength=1))
         self.initialize()
         
     def initialize(self): 
@@ -191,6 +192,8 @@ class TLPMD:
         return self.get_power_mW()/area_cm2
 
     def close(self) -> None:
+        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=0xA1, wValue=0x0000, wIndex=0x0000, data_or_wLength=1))
+        print(self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=0xA0, wValue=0x0000, wIndex=0x0000, data_or_wLength=1))
         self.instr.close()
         self.instr = None
 
