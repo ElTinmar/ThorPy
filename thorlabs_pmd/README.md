@@ -22,7 +22,7 @@ sudo udevadm trigger
 ```
 
 ```
-pip install python-usbtmc pyvisa pyusb libusb-package
+pip install git+https://github.com/ElTinmar/python-usbtmc pyvisa pyusb libusb-package
 ```
 
 ## Communication

@@ -2,7 +2,6 @@ import usb.core
 import usbtmc
 import sys
 from typing import List, NamedTuple, Tuple
-import usb.core
 
 if sys.platform == 'win32':
     import libusb_package
@@ -61,18 +60,93 @@ class TLPMD:
         self.initialize()
         
     def initialize(self): 
-        print(self.instr.ask("*IDN?"))
-        self.instr.write("SENS:POW:RANGE:AUTO ON")
-        print(self.instr.ask("SENS:POW:RANGE:AUTO?"))
-        self.instr.write("SENS:POW:UNIT W")
-        print(self.instr.ask("SENS:POW:UNIT?"))
-        self.instr.write("SENS:AVER 300")
-        print(self.instr.ask("SENS:AVER?"))
+        self.instr.write("*CLS;*SRE 0;*ESE 0;:STAT:PRES")
+        self.check_error_code()
+        self.instr.write("ABOR")
+        self.instr.write("CONF:POW")
+        self.instr.write("SENS:AVER:COUN 1")
+        self.check_error_code()
 
-    def get_beam_diameter_mm(self) -> float:
-        # FIXME: random usb timeout issues
-        return float(self.instr.ask("SENS:CORR:BEAM?"))
-    
+
+        # self.instr.write("*CLS;*SRE 0;*ESE 0;:STAT:PRES")
+        # self.check_error_code()
+
+        # print(self.instr.ask("SYST:SENS:IDN?"))
+        # print(self.instr.ask("STAT:AUX:COND?"))
+        # print(self.instr.ask("*IDN?"))
+        # print(self.instr.ask("CAL:STR?"))
+
+        # print(self.instr.ask("SYST:SENS:IDN?"))    
+        # print(self.instr.ask("SENS:CORR:WAV? MIN"))
+        # print(self.instr.ask("SENS:CORR:WAV? MAX"))
+        
+        # self.instr.write("ABOR")
+        # self.instr.write("CONF:Current")
+
+        # print(self.instr.ask("SENS:CORR?"))
+        # print(self.instr.ask("SENS:CORR? MIN"))
+        # print(self.instr.ask("SENS:CORR? MAX"))
+        # print(self.instr.ask("SENS:CORR:BEAM?"))
+        # print(self.instr.ask("SENS:CORR:BEAM? MIN"))
+        # print(self.instr.ask("SENS:CORR:BEAM? MAX"))
+        # print(self.instr.ask("SENS:CORR:WAV?"))
+        # print(self.instr.ask("SENS:CORR:WAV? MIN"))
+        # print(self.instr.ask("SENS:CORR:WAV? MAX"))
+        # print(self.instr.ask("SENS:CORR:POW:PDI:RESP?"))
+        # print(self.instr.ask("INP:FILT?"))
+        # print(self.instr.ask("SENS:CORR:COLL:ZERO:MAGN?"))
+        # print(self.instr.ask("SENS:CURR:RANG:AUTO?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP? MIN"))
+
+        # self.instr.write("SENS:AVER:COUN 1")
+        # self.check_error_code()
+        # print(self.instr.ask("SENS:CURR:RANG:UPP?"))
+        # print(self.instr.ask("Read?"))
+
+        # print(self.instr.ask("SENS:CORR?"))
+        # print(self.instr.ask("SENS:CORR? MIN"))
+        # print(self.instr.ask("SENS:CORR? MAX"))
+        # print(self.instr.ask("SENS:CORR:BEAM?"))
+        # print(self.instr.ask("SENS:CORR:BEAM? MIN"))
+        # print(self.instr.ask("SENS:CORR:BEAM? MAX"))
+        # print(self.instr.ask("SENS:CORR:WAV?"))
+        # print(self.instr.ask("SENS:CORR:WAV? MIN"))
+        # print(self.instr.ask("SENS:CORR:WAV? MAX"))
+        # print(self.instr.ask("SENS:CORR:POW:PDI:RESP?"))
+        # print(self.instr.ask("INP:FILT?"))
+        # print(self.instr.ask("SENS:CORR:COLL:ZERO:MAGN?"))
+        # print(self.instr.ask("SENS:CURR:RANG:AUTO?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP? MIN"))
+
+        # print(self.instr.ask("SENS:CORR:BEAM?"))
+        # print(self.instr.ask("SENS:CORR:BEAM?"))
+
+        # print(self.instr.ask("SENS:CORR?"))
+        # print(self.instr.ask("SENS:CORR? MIN"))
+        # print(self.instr.ask("SENS:CORR? MAX"))
+        # print(self.instr.ask("SENS:CORR:BEAM?"))
+        # print(self.instr.ask("SENS:CORR:BEAM? MIN"))
+        # print(self.instr.ask("SENS:CORR:BEAM? MAX"))
+        # print(self.instr.ask("SENS:CORR:WAV?"))
+        # print(self.instr.ask("SENS:CORR:WAV? MIN"))
+        # print(self.instr.ask("SENS:CORR:WAV? MAX"))
+        # print(self.instr.ask("SENS:CORR:POW:PDI:RESP?"))
+        # print(self.instr.ask("INP:FILT?"))
+        # print(self.instr.ask("SENS:CORR:COLL:ZERO:MAGN?"))
+        # print(self.instr.ask("SENS:CURR:RANG:AUTO?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP? MIN"))
+        
+        # print(self.instr.ask("SENS:CURR:RANG:AUTO?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP?"))
+        # print(self.instr.ask("SENS:CURR:RANG:UPP? MIN"))
+        # print(self.instr.ask("Read?"))
+        # print(self.instr.ask("Read?"))
+        # print(self.instr.ask("Read?"))
+        # print(self.instr.ask("Read?"))
+
     def check_error_code(self) -> None:
         error = self.instr.ask("SYST:ERR?")
         code, descr = error.split(',', 1)
@@ -87,6 +161,9 @@ class TLPMD:
         self.instr.write(f"SYST:LFR {line_frequency}")
         self.check_error_code()
 
+    def get_beam_diameter_mm(self) -> float:
+        return float(self.instr.ask("SENS:CORR:BEAM?"))
+    
     def set_beam_diameter_mm(self, diameter: float) -> None:
         self.instr.write(f"SENS:CORR:BEAM {diameter}")
         self.check_error_code()
@@ -105,19 +182,13 @@ class TLPMD:
         self.check_error_code()
 
     def get_power_mW(self) -> float:
-        power = self.instr.ask("MEAS:POW?")
+        power = self.instr.ask("Read?")
         return float(power)*10**3
     
     def get_power_density_mW_cm2(self) -> float:
         beam_diameter_cm = self.get_beam_diameter_mm() * 0.1
         area_cm2 = 3.14159 * (beam_diameter_cm/2)**2
         return self.get_power_mW()/area_cm2
-
-    def clear(self) -> None:
-        self.instr.clear()
-
-    def reset(self) -> None:
-        self.instr.write(f"*RST")
 
     def close(self) -> None:
         self.instr.close()
