@@ -12,7 +12,7 @@ setup(
         "numpy",
         "pyUSB",
         "libusb-package",
-        "git+https://github.com/ElTinmar/python-usbtmc",
+        "python-usbtmc",
         "matplotlib"
     ]
 )
