@@ -57,6 +57,8 @@ class TLPMD:
         self.instr.write("ABOR")
         self.instr.write("CONF:POW")
         self.instr.write("SENS:AVER:COUN 1")
+        # self.instr.ask("INP:FILT?")
+        # self.instr.write("INP:FILT ON") # which syntax?
         # self.instr.write("INP:PDI:FILT:LPAS:STAT ON") # set LO (15Hz) bandwidth mode
         self.check_error_code()
 
