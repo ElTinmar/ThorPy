@@ -60,6 +60,9 @@ class TLPMD:
         # self.instr.ask("INP:FILT?")
         # self.instr.write("INP:FILT ON") # which syntax?
         # self.instr.write("INP:PDI:FILT:LPAS:STAT ON") # set LO (15Hz) bandwidth mode
+        # TODO set range
+        # self.instr.ask("SENS:POW:RANG:UPP? MIN"))
+
         self.check_error_code()
 
     def remote_enable(self, value: int) -> None:
