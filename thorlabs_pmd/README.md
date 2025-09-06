@@ -61,5 +61,12 @@ instr.query("MEAS:POW?")
 
 ## Useful references
 
-https://www.thorlabs.de/drawings/dfabcd948950e735-6A065E54-C023-9205-65C7651A5BBEF377/PM100D-Manual.pdf
 https://github.com/Thorlabs/Light_Analysis_Examples/tree/main/Python/Thorlabs%20PMxxx%20Power%20Meters/scpi
+
+
+'The analogue bandwidth setting influences the power reading and the
+analogue output. The bandwidth can be selected in the Meas Config measurement
+configuration menu to ‘HI’ (range dependent bandwidth up to 100 kHz) or ‘LO’ (15 Hz
+bandwidth) by toggling the BW H I /LOW button.
+For measuring CW or average power from pulsed sources the bandwidth should
+be set to ‘LO’'

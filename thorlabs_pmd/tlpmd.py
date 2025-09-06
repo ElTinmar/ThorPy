@@ -57,6 +57,7 @@ class TLPMD:
         self.instr.write("ABOR")
         self.instr.write("CONF:POW")
         self.instr.write("SENS:AVER:COUN 1")
+        # self.instr.write("INP:PDI:FILT:LPAS:STAT ON") # set LO (15Hz) bandwidth mode
         self.check_error_code()
 
     def remote_enable(self, value: int) -> None:
