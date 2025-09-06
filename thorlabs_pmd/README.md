@@ -70,3 +70,14 @@ configuration menu to ‘HI’ (range dependent bandwidth up to 100 kHz) or ‘L
 bandwidth) by toggling the BW H I /LOW button.
 For measuring CW or average power from pulsed sources the bandwidth should
 be set to ‘LO’'
+
+'With a photodiode sensor that can follow short pulses in the ns range it is important
+that the pulse peak power is within the maximum power range of the sensor. It is also
+important that the power range is set that accordingly the peak power is within this
+range, otherwise the reading will clip at the range end and lead to a wrong average
+value. Further it is important to use a power range in manual mode that can measure
+the peak value, therefore the Min-Max function is very helpful. Depending on the
+pulse length and repetition rate the bandwidth setting will influence the power
+reading. It is recommended to use the low bandwidth setting for a stable display;
+when the pulse should be monitored via the analog output, the bandwidth should be
+set to ‘HI’.'
