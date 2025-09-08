@@ -3,6 +3,7 @@ import usbtmc
 import sys
 from typing import List, NamedTuple
 from enum import Enum, IntEnum
+from math import log10
 
 if sys.platform == 'win32':
     import libusb_package
@@ -154,12 +155,29 @@ class TLPMD:
     
     def get_power_range_W(self) -> float:
         return float(self.instr.ask("SENS:POW:RANG?"))
+
+    def get_min_current_range_A(self) -> float:
+        return float(self.instr.ask("SENS:CURR:RANG? MIN"))
     
-    def set_power_range_decade(self, decade: int) -> None:
-        # -5 to 0 
-        range = self.get_max_power_range_W() * 10**decade
-        self.instr.write(f"SENS:POW:RANG {range}")
+    def get_max_current_range_A(self) -> float:
+        return float(self.instr.ask("SENS:CURR:RANG? MAX"))
+    
+    def get_current_range_A(self) -> float:
+        return float(self.instr.ask("SENS:CURR:RANG?"))
+    
+    def set_current_range_decade(self, decade: int) -> None:
+        # 6 decades with photodiodes from 50 nA to 5 mA
+        power_max = self.get_max_current_range_A() 
+        power = power_max * 10**decade
+        self.instr.write(f"SENS:CURR:RANG {power}")
         self.check_error_code()
+
+    def get_current_range_decade(self) -> int:
+        # 6 decades with photodiodes from 50 nA to 5 mA
+        power = self.get_current_range_A()
+        power_max = self.get_max_current_range_A() 
+        decade = int(log10(power/power_max))
+        return decade
 
     def get_power_mW(self) -> float:
         power = self.instr.ask("Read?")
