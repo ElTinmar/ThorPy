@@ -47,6 +47,9 @@ class LineFrequency(IntEnum):
     FITFTY_HZ = 50
     SIXTY_HZ = 60
 
+class Range(IntEnum):
+    ...
+
 class TLPMD:
 
     def __init__(
@@ -75,7 +78,7 @@ class TLPMD:
         self.set_average_count(100)
         self.set_bandwidth(Bandwidth.LOW)
         self.set_attenuation_dB(0)
-        self.set_power_range_W(0.01) 
+        self.set_power_range_decade(-2) 
 
     def remote_enable(self, value: int) -> None:
         self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=REN_CONTROL, wValue=value, wIndex=0x0000, data_or_wLength=1)
@@ -152,8 +155,10 @@ class TLPMD:
     def get_power_range_W(self) -> float:
         return float(self.instr.ask("SENS:POW:RANG?"))
     
-    def set_power_range_W(self, value: float) -> None:
-        self.instr.write(f"SENS:POW:RANG {value}")
+    def set_power_range_decade(self, decade: int) -> None:
+        # -5 to 0 
+        range = self.get_max_power_range_W() * 10**decade
+        self.instr.write(f"SENS:POW:RANG {range}")
         self.check_error_code()
 
     def get_power_mW(self) -> float:
