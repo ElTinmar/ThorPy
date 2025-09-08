@@ -65,6 +65,7 @@ class TLPMD:
         self.check_error_code()
         self.instr.write("ABOR")
         self.instr.write("CONF:POW")
+        self.instr.write("SENS:POW:RANG:AUTO OFF")
 
         # set a few default values
         self.set_average_count(100)
