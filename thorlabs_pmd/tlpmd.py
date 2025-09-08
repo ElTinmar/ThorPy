@@ -2,6 +2,7 @@ import usb.core
 import usbtmc
 import sys
 from typing import List, NamedTuple
+from enum import Enum, IntEnum
 
 if sys.platform == 'win32':
     import libusb_package
@@ -38,6 +39,14 @@ def list_powermeters() -> List[DevInfo]:
 
     return res
 
+class Bandwidth(Enum):
+    LOW = 'ON'
+    HIGH = 'OFF'
+
+class LineFrequency(IntEnum):
+    FITFTY_HZ = 50
+    SIXTY_HZ = 60
+
 class TLPMD:
 
     def __init__(
@@ -56,14 +65,11 @@ class TLPMD:
         self.check_error_code()
         self.instr.write("ABOR")
         self.instr.write("CONF:POW")
-        self.instr.write("SENS:AVER:COUN 1")
-        # self.instr.ask("INP:FILT?")
-        # self.instr.write("INP:FILT ON") # which syntax?
-        # self.instr.write("INP:PDI:FILT:LPAS:STAT ON") # set LO (15Hz) bandwidth mode
-        # TODO set range
-        # self.instr.ask("SENS:POW:RANG:UPP? MIN"))
 
-        self.check_error_code()
+        self.set_average_count(100)
+        self.set_bandwidth(Bandwidth.LOW)
+        self.set_attenuation_dB(0)
+        #self.set_power_range_W(1)
 
     def remote_enable(self, value: int) -> None:
         self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=REN_CONTROL, wValue=value, wIndex=0x0000, data_or_wLength=1)
@@ -78,11 +84,13 @@ class TLPMD:
         if code != 0:
             raise RuntimeError(f'Error code {code}: {descr}')
 
-    def get_line_frequency_Hz(self) -> float:
-        return float(self.instr.ask(f"SYST:LFR?"))
+    def get_line_frequency_Hz(self) -> LineFrequency:
+        if int(self.instr.ask("SYST:LFR?")) == LineFrequency.FITFTY_HZ:
+            return LineFrequency.FITFTY_HZ
+        return LineFrequency.SIXTY_HZ
 
-    def set_line_frequency_Hz(self, line_frequency: float) -> None:
-        self.instr.write(f"SYST:LFR {line_frequency}")
+    def set_line_frequency_Hz(self, line_frequency: LineFrequency) -> None:
+        self.instr.write(f"SYST:LFR {line_frequency.value}")
         self.check_error_code()
 
     def get_beam_diameter_mm(self) -> float:
@@ -93,16 +101,53 @@ class TLPMD:
         self.check_error_code()
 
     def get_max_wavelength_nm(self) -> float:
-        return float(self.instr.ask(f"SENS:CORR:WAV? MAX"))
+        return float(self.instr.ask("SENS:CORR:WAV? MAX"))
     
     def get_min_wavelength_nm(self) -> float:
-        return float(self.instr.ask(f"SENS:CORR:WAV? MIN"))
+        return float(self.instr.ask("SENS:CORR:WAV? MIN"))
     
     def get_wavelength_nm(self) -> float:
-        return float(self.instr.ask(f"SENS:CORR:WAV?"))
+        return float(self.instr.ask("SENS:CORR:WAV?"))
 
     def set_wavelength_nm(self, wavelength: float) -> None:
         self.instr.write(f"SENS:CORR:WAV {wavelength}")
+        self.check_error_code()
+
+    def set_bandwidth(self, bandwidth: Bandwidth) -> None:
+        self.instr.write(f"INP:FILT {bandwidth.value}")
+        self.check_error_code()
+
+    def get_bandwidth(self) -> Bandwidth:
+        res = self.instr.ask("INP:FILT?")
+        if int(res):
+            return Bandwidth.LOW
+        return Bandwidth.HIGH
+
+    def get_attenuation_dB(self) -> float:
+        return float(self.instr.ask("SENS:CORR:LOSS?"))
+
+    def set_attenuation_dB(self, attenuation_dB: float) -> None:
+        self.instr.write(f"SENS:CORR:LOSS {attenuation_dB}")
+        self.check_error_code()
+
+    def get_average_count(self) -> int:
+        return int(self.instr.ask("SENS:AVER:COUN?"))
+    
+    def set_average_count(self, count: int) -> None:
+        self.instr.write(f"SENS:AVER:COUN {count}")
+        self.check_error_code()
+
+    def get_min_power_range_W(self) -> float:
+        return float(self.instr.ask("SENS:POW:RANG? MIN"))
+    
+    def get_max_power_range_W(self) -> float:
+        return float(self.instr.ask("SENS:POW:RANG? MAX"))
+    
+    def get_power_range_W(self) -> float:
+        return float(self.instr.ask("SENS:POW:RANG?"))
+    
+    def set_power_range_W(self, value: float) -> None:
+        self.instr.write(f"SENS:POW:RANG {value}")
         self.check_error_code()
 
     def get_power_mW(self) -> float:
