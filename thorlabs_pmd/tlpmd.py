@@ -61,8 +61,12 @@ class TLPMD:
         self.initialize()
         
     def initialize(self): 
+
+        # reset device
         self.instr.write("*CLS;*SRE 0;*ESE 0;:STAT:PRES")
         self.check_error_code()
+
+        # general config for power measurement
         self.instr.write("ABOR")
         self.instr.write("CONF:POW")
         self.instr.write("SENS:POW:RANG:AUTO OFF")
