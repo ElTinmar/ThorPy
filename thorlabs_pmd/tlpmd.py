@@ -70,7 +70,7 @@ class TLPMD:
         self.set_average_count(100)
         self.set_bandwidth(Bandwidth.LOW)
         self.set_attenuation_dB(0)
-        self.set_power_range_W(0.1) # 0.1 or 0.01 maybe?
+        self.set_power_range_W(0.01) 
 
     def remote_enable(self, value: int) -> None:
         self.instr.device.ctrl_transfer(bmRequestType=0xA1, bRequest=REN_CONTROL, wValue=value, wIndex=0x0000, data_or_wLength=1)
