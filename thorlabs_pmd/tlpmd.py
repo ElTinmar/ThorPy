@@ -11,6 +11,9 @@ if sys.platform == 'win32':
 else:
     libusb_backend = None
 
+class DeviceNotFound(Exception): ...
+
+
 REN_CONTROL = 160 # Optional. Mechanism to enable or disable local controls on a device.
 GO_TO_LOCAL = 161 # Optional. Mechanism to enable local controls on a device. 
 THORLABS_VID = 0x1313
