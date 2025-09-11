@@ -186,11 +186,20 @@ class TLPMD:
         power = self.instr.ask("Read?")
         return float(power)*10**3
     
+    def get_power_microW(self) -> float:
+        power = self.instr.ask("Read?")
+        return float(power)*10**6
+    
     def get_power_density_mW_cm2(self) -> float:
         beam_diameter_cm = self.get_beam_diameter_mm() * 0.1
         area_cm2 = 3.14159 * (beam_diameter_cm/2)**2
         return self.get_power_mW()/area_cm2
 
+    def get_power_density_microW_cm2(self) -> float:
+        beam_diameter_cm = self.get_beam_diameter_mm() * 0.1
+        area_cm2 = 3.14159 * (beam_diameter_cm/2)**2
+        return self.get_power_microW()/area_cm2
+    
     def close(self) -> None:
         self.local_control()
         self.remote_enable(0)
